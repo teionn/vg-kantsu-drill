@@ -62,9 +62,10 @@ h1{font-size:20px;font-weight:700;margin:0;letter-spacing:.02em}
 .total{font-family:var(--num);font-weight:700;font-size:32px;line-height:1;color:var(--shield);font-variant-numeric:tabular-nums;flex:none}
 .guard.ok{border-style:solid;border-color:var(--ok)} .guard.ok .total{color:var(--ok)}
 .guard.ng{border-style:solid;border-color:var(--atk)} .guard.ng .total{color:var(--atk);text-decoration:line-through}
-.dmg{display:flex;flex-direction:column;gap:4px;align-items:center;align-self:center}
-.dmg span{width:62px;height:24px;border:1.5px solid var(--own);border-radius:3px;color:var(--own);font-family:var(--num);font-weight:600;font-size:17px;line-height:21px;text-align:center}
-.dmg small{font-size:10px;color:var(--muted)}
+.dmg{display:flex;flex-direction:column;align-items:flex-start;justify-self:start;align-self:center;line-height:1.15;margin-left:-6px}
+.dmg small{font-size:12px;font-weight:700;color:var(--own);white-space:nowrap}
+.dmg b{font-family:var(--num);font-weight:700;font-size:28px;color:var(--own);font-variant-numeric:tabular-nums}
+.dmg span{font-size:11px;color:var(--muted)}
 
 .ask{font-size:18px;font-weight:700;margin:2px 0 0;text-wrap:balance}
 .ask em{font-style:normal;background:var(--shield-bg);color:var(--shield);padding:0 6px;border-radius:4px}
@@ -98,6 +99,10 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 .opts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .opt{background:var(--mat);border:1px solid var(--mat-edge);border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer}
 .opt[aria-pressed="true"]{border-color:var(--own);box-shadow:inset 0 0 0 1px var(--own);color:var(--own);font-weight:700}
+.code{justify-self:start;align-self:end;background:none;border:0;padding:4px 0;font-size:11px;line-height:1.2;color:var(--muted);cursor:pointer;text-align:left}
+.code b{display:block;font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:.05em;color:var(--text)}
+.codemsg{font-size:12px;color:var(--atk)}
+#codeInput{font:inherit;font-size:16px;width:7em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text);text-transform:uppercase}
 #customPower{font:inherit;font-size:16px;width:6em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text)}
 .reset{background:none;border:0;padding:4px 0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;align-self:flex-start}
 @media (max-width:400px){.circle{width:74px;height:74px;font-size:26px}}
@@ -123,7 +128,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
       <span class="total" id="total">0</span>
     </div>
     <div class="row">
-      <div></div>
+      <button class="code" type="button" id="codeBtn" title="問題コードをコピー"><span id="codeLab">問題コード</span><b id="codeVal"></b></button>
       <div class="unit"><div class="circle own" id="ownC"></div><div class="cap">あなたのヴァンガード</div></div>
       <div class="dmg" id="dmg"></div>
     </div>
@@ -178,6 +183,14 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
         <button class="opt" type="button" data-dmg="2">0〜2枚</button>
       </div>
     </div>
+    <div>
+      <h2>問題コードで出題</h2>
+      <form class="opts" id="codeForm">
+        <input id="codeInput" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="例 N8ZU" aria-label="問題コード">
+        <button class="opt" type="submit">出題</button>
+        <span class="codemsg" id="codeMsg" role="status"></span>
+      </form>
+    </div>
     <button class="reset" id="resetBtn" type="button">成績を消す</button>
   </section>
 </main>
@@ -186,6 +199,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 (function(){
   var TRIG = 10000, STEP = 5000, MAX = 75000, KEY = "guard-drill-v1";
   var DRV = { rear: 0, twin: 2, triple: 3, quad: 4 };
+  var TYPES = ["rear", "twin", "triple", "quad"];
   var DRV_NAME = { twin: "ツイン", triple: "トリプル", quad: "クアドラプル" };
   var cfg = { vg: "13000", custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
   var stats = { correct: 0, total: 0, streak: 0 };
@@ -217,10 +231,39 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
     var need = atk + (k - 1) * TRIG;
     return need >= def ? Math.floor((need - def) / STEP) * STEP + STEP : 0;
   }
+  function build(type, atk, base, dt, k, pos){
+    var def = base + dt * TRIG;
+    var q = { type: type, drives: DRV[type], atk: atk, dt: dt, base: base, def: def, k: k,
+              s: minShield(atk, def, k), pos: pos };
+    q.code = encode(q);
+    return q;
+  }
+  function encode(q){
+    var n = q.atk / 1000;
+    n = n * 128 + q.base / 1000;
+    n = n * 4 + q.dt;
+    n = n * 8 + (q.k - 1);
+    n = n * 4 + TYPES.indexOf(q.type);
+    n = n * 2 + (q.pos === 2 ? 1 : 0);
+    return n.toString(36).toUpperCase();
+  }
+  function decode(str){
+    str = String(str).replace(/[^0-9a-z]/gi, "").toUpperCase().replace(/^0+/, "");
+    if (!str || str.length > 6) return null;
+    var n = parseInt(str, 36);
+    if (!(n > 0)) return null;
+    var side = n % 2; n = Math.floor(n / 2);
+    var type = TYPES[n % 4]; n = Math.floor(n / 4);
+    var k = n % 8 + 1; n = Math.floor(n / 8);
+    var dt = n % 4; n = Math.floor(n / 4);
+    var base = (n % 128) * 1000; n = Math.floor(n / 128);
+    var atk = n * 1000;
+    if (atk < 1000 || atk > 127000 || base < 1000 || k > DRV[type] + 1) return null;
+    var q = build(type, atk, base, dt, k, type === "rear" ? (side ? 2 : 0) : 1);
+    return q.code === str ? q : null;
+  }
   function makeQ(type, atk, dt, k){
-    var def = vgPower() + dt * TRIG;
-    return { type: type, drives: DRV[type], atk: atk, dt: dt, base: vgPower(), def: def, k: k,
-             s: minShield(atk, def, k), pos: type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1 };
+    return build(type, atk, vgPower(), dt, k, type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1);
   }
   function generate(){
     var pool = Object.keys(DRV).filter(function(t){ return cfg.types[t]; });
@@ -282,12 +325,16 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
     }
     $("ownC").textContent = q.base;
     var dmg = $("dmg"); dmg.textContent = "";
-    for (var t = 0; t < q.dt; t++) dmg.appendChild(el("span", "+" + TRIG));
-    if (q.dt) dmg.appendChild(el("small", "ダメージトリガー"));
+    if (q.dt) {
+      dmg.appendChild(el("small", "ダメージトリガー"));
+      dmg.appendChild(el("b", "+" + q.dt * TRIG));
+      if (q.dt > 1) dmg.appendChild(el("span", q.dt + "枚ぶん"));
+    }
     var ask = $("ask"); ask.textContent = "";
     var goal = q.drives === 0 ? "止める" : q.k > q.drives ? q.drives + "枚引かれても通さない" : q.k + "枚貫通にする";
     ask.appendChild(el("em", goal)); ask.appendChild(document.createTextNode("には、ガード値いくつ？"));
     $("guard").className = "guard";
+    $("codeVal").textContent = q.code; $("codeLab").textContent = "問題コード";
     showStack();
     $("hand").hidden = false; $("result").hidden = true;
     drawArrow();
@@ -325,7 +372,20 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
     $("hand").hidden = true; $("result").hidden = false;
     $("nextBtn").focus({ preventScroll: true });
   }
-  function next(){ q = generate(); render(); }
+  function next(){
+    if (/^#q-/i.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} }
+    q = generate(); render();
+  }
+  function load(str){
+    var c = decode(str);
+    if (!c) return false;
+    q = c; render();
+    return true;
+  }
+  function fromHash(){
+    var m = /^#q-([0-9a-z]{1,6})$/i.exec(location.hash);
+    return !!m && load(m[1]);
+  }
   function showStats(){
     $("stScore").textContent = stats.correct + "/" + stats.total;
     $("stStreak").textContent = stats.streak;
@@ -346,6 +406,18 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   $("undoBtn").addEventListener("click", function(){ stack.pop(); showStack(); });
   $("goBtn").addEventListener("click", answer);
   $("nextBtn").addEventListener("click", next);
+  $("codeBtn").addEventListener("click", function(){
+    var done = function(){ $("codeLab").textContent = "コピーした"; };
+    try { navigator.clipboard.writeText(q.code).then(done, function(){}); } catch (e) {}
+  });
+  $("codeForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if (load($("codeInput").value)) {
+      $("codeMsg").textContent = ""; $("codeInput").value = "";
+      try { window.scrollTo(0, 0); } catch (err) {}
+    } else $("codeMsg").textContent = "そのコードの問題はありません";
+  });
+  window.addEventListener("hashchange", fromHash);
   $("resetBtn").addEventListener("click", function(){ stats = { correct: 0, total: 0, streak: 0 }; showStats(); });
   $("vgOpts").addEventListener("click", function(e){
     var b = e.target.closest("[data-vg]"); if (!b) return;
@@ -370,7 +442,8 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 
   function start(data){
     if (data && data.stats) stats = data.stats;
-    syncOpts(); showStats(); next();
+    syncOpts(); showStats();
+    if (!fromHash()) next();
   }
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function(){ return { stats: stats }; });
