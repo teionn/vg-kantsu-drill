@@ -189,7 +189,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   var DRV_NAME = { twin: "ツイン", triple: "トリプル", quad: "クアドラプル" };
   var cfg = { vg: "13000", custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
   var stats = { correct: 0, total: 0, streak: 0 };
-  var q = null, stack = [], answered = false, firstDone = false;
+  var q = null, stack = [], answered = false;
 
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -225,11 +225,6 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   function generate(){
     var pool = Object.keys(DRV).filter(function(t){ return cfg.types[t]; });
     if (!pool.length) pool = ["rear"];
-    if (!firstDone && cfg.vg === "13000" && cfg.types.twin && cfg.dmg > 0) {
-      firstDone = true;
-      return makeQ("twin", 33000, 1, 2);
-    }
-    firstDone = true;
     for (var i = 0; i < 500; i++) {
       var type = pool[ri(0, pool.length - 1)];
       var drives = DRV[type];
@@ -374,7 +369,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawArrow);
 
   function start(data){
-    if (data && data.stats) { stats = data.stats; firstDone = true; }
+    if (data && data.stats) stats = data.stats;
     syncOpts(); showStats(); next();
   }
   var hot = window.claude && window.claude.hot;
