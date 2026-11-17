@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ガード値ドリル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* layout: 上から 盤面(相手の前列 → ガード置き場 → 自分のヴァンガード) → 問い → 手札(シールド) → 解説 → 設定 */
+:root{
+  --bg:#eceef3; --mat:#ffffff; --mat-edge:#d3d8e3; --mark:#b4bccb;
+  --text:#141a2e; --muted:#5a6279; --atk:#c4312a; --own:#1d5cbb;
+  --shield:#8a5a00; --shield-bg:#ffe7a1; --ok:#17814a;
+  --num:"Barlow Condensed","Zen Kaku Gothic New",sans-serif;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
+    --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
+    --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
+  --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
+  --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--jp);font-size:16px;line-height:1.6}
+button{touch-action:manipulation;font:inherit;color:inherit}
+main{max-width:560px;margin:0 auto;padding:14px 16px 40px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;justify-content:space-between;align-items:baseline}
+h1{font-size:20px;font-weight:700;margin:0;letter-spacing:.02em}
+.score{font-size:13px;color:var(--muted)}
+.score b{font-family:var(--num);font-weight:700;font-size:22px;color:var(--text);margin:0 2px 0 4px;font-variant-numeric:tabular-nums}
+
+.mat{position:relative;background:var(--mat);border:1px solid var(--mat-edge);border-radius:10px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
+.mat svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#arrow{stroke:var(--atk);stroke-width:3;stroke-dasharray:7 6;animation:march .6s linear infinite}
+#head path{fill:var(--atk)}
+@keyframes march{to{stroke-dashoffset:-13}}
+@media (prefers-reduced-motion:reduce){#arrow{animation:none}}
+.row{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;align-items:start;position:relative}
+.unit{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.circle{width:80px;height:80px;border-radius:50%;border:1.5px solid var(--mark);display:flex;align-items:center;justify-content:center;font-family:var(--num);font-weight:700;font-size:28px;line-height:1;font-variant-numeric:tabular-nums;background:var(--mat)}
+.circle.atk{border:3px solid var(--atk);color:var(--atk)}
+.circle.own{border:3px solid var(--own);color:var(--own)}
+.cap{font-size:12px;color:var(--muted);text-align:center;line-height:1.3;min-height:1.3em;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
+.cap.atk{color:var(--atk);font-weight:700}
+.drv{display:inline-flex;gap:2px}
+.drv i{width:9px;height:13px;border:1.5px solid var(--atk);border-radius:1px;display:block}
+
+.guard{position:relative;border:1.5px dashed var(--mark);border-radius:8px;min-height:52px;padding:6px 12px;display:flex;align-items:center;gap:10px;background:var(--mat)}
+.guard .glabel{font-size:11px;color:var(--muted);flex:none}
+.pile{flex:1;display:flex;min-width:0;padding-left:8px}
+.pile span{flex:0 1 46px;min-width:10px;height:30px;margin-left:-8px;background:var(--shield-bg);border:1.5px solid var(--shield);border-radius:3px;color:var(--shield);font-family:var(--num);font-weight:600;font-size:16px;line-height:27px;text-align:center;overflow:hidden}
+.total{font-family:var(--num);font-weight:700;font-size:32px;line-height:1;color:var(--shield);font-variant-numeric:tabular-nums;flex:none}
+.guard.ok{border-style:solid;border-color:var(--ok)} .guard.ok .total{color:var(--ok)}
+.guard.ng{border-style:solid;border-color:var(--atk)} .guard.ng .total{color:var(--atk);text-decoration:line-through}
+.dmg{display:flex;flex-direction:column;gap:4px;align-items:center;align-self:center}
+.dmg span{width:62px;height:24px;border:1.5px solid var(--own);border-radius:3px;color:var(--own);font-family:var(--num);font-weight:600;font-size:17px;line-height:21px;text-align:center}
+.dmg small{font-size:10px;color:var(--muted)}
+
+.ask{font-size:18px;font-weight:700;margin:2px 0 0;text-wrap:balance}
+.ask em{font-style:normal;background:var(--shield-bg);color:var(--shield);padding:0 6px;border-radius:4px}
+.note{font-size:12px;color:var(--muted);margin:0}
+
+.hand{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hand[hidden],.result[hidden]{display:none}
+.card{background:var(--mat);border:1px solid var(--mat-edge);border-radius:8px;padding:10px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1;gap:2px}
+.card small{font-size:10px;color:var(--muted)}
+.card b{font-family:var(--num);font-weight:700;font-size:28px;color:var(--text);font-variant-numeric:tabular-nums}
+.card:hover,.card:active{border-color:var(--shield);background:var(--shield-bg)} .card:hover b,.card:active b{color:var(--shield)}
+.act{border:1px solid var(--mat-edge);background:none;border-radius:8px;padding:12px 0;font-size:14px;cursor:pointer}
+.act.go{grid-column:span 2;background:var(--text);color:var(--bg);border-color:var(--text);font-weight:700}
+button:focus-visible,input:focus-visible{outline:3px solid var(--own);outline-offset:2px}
+
+.result{display:flex;flex-direction:column;gap:8px;background:var(--mat);border:1px solid var(--mat-edge);border-radius:10px;padding:12px 14px}
+.verdict{font-weight:700;font-size:17px;margin:0}
+.verdict.ok{color:var(--ok)} .verdict.ng{color:var(--atk)}
+.why{margin:0;font-size:14px}
+.calc{margin:0;font-family:var(--num);font-weight:600;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.calc .o{color:var(--own)} .calc .s{color:var(--shield)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td{padding:3px 0;border-top:1px solid var(--mat-edge)}
+td.n{font-family:var(--num);font-weight:600;font-size:20px;line-height:1.2;color:var(--atk);text-align:right;padding-right:14px;width:5em;font-variant-numeric:tabular-nums}
+td.r{text-align:right;font-weight:700}
+td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
+.nextq{background:var(--text);color:var(--bg);border:0;border-radius:8px;padding:13px;font-weight:700;font-size:16px;cursor:pointer}
+
+.range{border-top:1px solid var(--mat-edge);padding-top:14px;margin-top:8px;display:flex;flex-direction:column;gap:12px}
+.range h2{font-size:13px;font-weight:500;margin:0 0 5px;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.opt{background:var(--mat);border:1px solid var(--mat-edge);border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--own);box-shadow:inset 0 0 0 1px var(--own);color:var(--own);font-weight:700}
+#customPower{font:inherit;font-size:16px;width:6em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text)}
+.reset{background:none;border:0;padding:4px 0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;align-self:flex-start}
+@media (max-width:400px){.circle{width:74px;height:74px;font-size:26px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ガード値ドリル</h1>
+    <div class="score">正解<b id="stScore">0/0</b>　連続<b id="stStreak">0</b></div>
+  </header>
+
+  <section class="mat" id="mat" aria-live="polite">
+    <svg aria-hidden="true"><defs><marker id="head" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z"/></marker></defs><line id="arrow" marker-end="url(#head)"/></svg>
+    <div class="row" id="oppRow">
+      <div class="unit"><div class="circle" id="c0"></div><div class="cap" id="cap0"></div></div>
+      <div class="unit"><div class="circle" id="c1"></div><div class="cap" id="cap1"></div></div>
+      <div class="unit"><div class="circle" id="c2"></div><div class="cap" id="cap2"></div></div>
+    </div>
+    <div class="guard" id="guard">
+      <span class="glabel">ガード</span>
+      <div class="pile" id="pile"></div>
+      <span class="total" id="total">0</span>
+    </div>
+    <div class="row">
+      <div></div>
+      <div class="unit"><div class="circle own" id="ownC"></div><div class="cap">あなたのヴァンガード</div></div>
+      <div class="dmg" id="dmg"></div>
+    </div>
+  </section>
+
+  <div>
+    <p class="ask" id="ask"></p>
+    <p class="note">最小の値で答える。同値はヒット。トリガーは1枚 +10000。</p>
+  </div>
+
+  <div class="hand" id="hand">
+    <button class="card" type="button" data-add="5000"><small>シールド</small><b>5000</b></button>
+    <button class="card" type="button" data-add="10000"><small>シールド</small><b>10000</b></button>
+    <button class="card" type="button" data-add="15000"><small>シールド</small><b>15000</b></button>
+    <button class="act" type="button" id="undoBtn">1枚もどす</button>
+    <button class="act go" type="button" id="goBtn">これでガード</button>
+  </div>
+
+  <section class="result" id="result" hidden>
+    <p class="verdict" id="verdict"></p>
+    <p class="why" id="why"></p>
+    <p class="calc" id="calc"></p>
+    <table id="rows"></table>
+    <button class="nextq" id="nextBtn" type="button">次の問題</button>
+  </section>
+
+  <section class="range">
+    <div>
+      <h2>自分のヴァンガード</h2>
+      <div class="opts" id="vgOpts">
+        <button class="opt" type="button" data-vg="10000">G2 10000</button>
+        <button class="opt" type="button" data-vg="13000">G3 13000</button>
+        <button class="opt" type="button" data-vg="18000">G3 13000+5000</button>
+        <button class="opt" type="button" data-vg="custom">その他</button>
+        <input id="customPower" type="number" min="1000" step="1000" value="12000" aria-label="その他のパワー">
+      </div>
+    </div>
+    <div>
+      <h2>相手のアタック</h2>
+      <div class="opts" id="typeOpts">
+        <button class="opt" type="button" data-type="rear">リアガード</button>
+        <button class="opt" type="button" data-type="twin">ツインドライブ</button>
+        <button class="opt" type="button" data-type="triple">トリプルドライブ</button>
+        <button class="opt" type="button" data-type="quad">クアドラプルドライブ</button>
+      </div>
+    </div>
+    <div>
+      <h2>ダメージトリガー（自分に +10000）</h2>
+      <div class="opts" id="dmgOpts">
+        <button class="opt" type="button" data-dmg="0">なし</button>
+        <button class="opt" type="button" data-dmg="1">0〜1枚</button>
+        <button class="opt" type="button" data-dmg="2">0〜2枚</button>
+      </div>
+    </div>
+    <button class="reset" id="resetBtn" type="button">成績を消す</button>
+  </section>
+</main>
+
+<script>
+(function(){
+  var TRIG = 10000, STEP = 5000, MAX = 75000, KEY = "guard-drill-v1";
+  var DRV = { rear: 0, twin: 2, triple: 3, quad: 4 };
+  var DRV_NAME = { twin: "ツイン", triple: "トリプル", quad: "クアドラプル" };
+  var cfg = { vg: "13000", custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
+  var stats = { correct: 0, total: 0, streak: 0 };
+  var q = null, stack = [], answered = false, firstDone = false;
+
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && saved.types) cfg = saved;
+  } catch (e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
+
+  var $ = function(id){ return document.getElementById(id); };
+  function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+  function el(tag, text, cls){ var e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+  function vgPower(){
+    if (cfg.vg === "custom") { var v = Math.round(Number(cfg.custom) / 1000) * 1000; return v > 0 ? v : 12000; }
+    return Number(cfg.vg);
+  }
+  function rndPower(lo, hi){
+    var v;
+    do { v = ri(lo, hi); } while ([0, 3, 5, 8].indexOf(v % 10) < 0 && Math.random() < 0.85);
+    return v * 1000;
+  }
+  function pen(atk, total, drives){
+    for (var t = 0; t <= drives; t++) if (atk + t * TRIG >= total) return t;
+    return drives + 1;
+  }
+  function minShield(atk, def, k){
+    var need = atk + (k - 1) * TRIG;
+    return need >= def ? Math.floor((need - def) / STEP) * STEP + STEP : 0;
+  }
+  function makeQ(type, atk, dt, k){
+    var def = vgPower() + dt * TRIG;
+    return { type: type, drives: DRV[type], atk: atk, dt: dt, base: vgPower(), def: def, k: k,
+             s: minShield(atk, def, k), pos: type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1 };
+  }
+  function generate(){
+    var pool = Object.keys(DRV).filter(function(t){ return cfg.types[t]; });
+    if (!pool.length) pool = ["rear"];
+    if (!firstDone && cfg.vg === "13000" && cfg.types.twin && cfg.dmg > 0) {
+      firstDone = true;
+      return makeQ("twin", 33000, 1, 2);
+    }
+    firstDone = true;
+    for (var i = 0; i < 500; i++) {
+      var type = pool[ri(0, pool.length - 1)];
+      var drives = DRV[type];
+      var atk = type === "rear" ? rndPower(8, 58) : rndPower(13, 63);
+      var k = drives === 0 ? 1 : (Math.random() < 0.2 ? drives + 1 : ri(1, drives));
+      var c = makeQ(type, atk, ri(0, cfg.dmg), k);
+      if (c.s > MAX) continue;
+      if (pen(c.atk, c.def + c.s, c.drives) !== c.k) continue;
+      if (c.s === 0 && Math.random() < 0.7) continue;
+      return c;
+    }
+    return makeQ("rear", 23000, 0, 1);
+  }
+  function penLabel(p, drives){
+    if (drives === 0) return p === 0 ? "ヒットする" : "止まる";
+    if (p === 0) return "トリガーなしでヒットする";
+    if (p > drives) return drives + "枚引かれても通らない";
+    return p + "枚貫通";
+  }
+
+  function drawArrow(){
+    if (!q) return;
+    var m = $("mat").getBoundingClientRect();
+    var a = $("c" + q.pos).getBoundingClientRect(), b = $("ownC").getBoundingClientRect();
+    var ax = a.left + a.width / 2 - m.left, ay = a.top + a.height / 2 - m.top;
+    var bx = b.left + b.width / 2 - m.left, by = b.top + b.height / 2 - m.top;
+    var dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var ra = a.width / 2 + 3, rb = b.width / 2 + 8;
+    var ln = $("arrow");
+    ln.setAttribute("x1", ax + dx / len * ra); ln.setAttribute("y1", ay + dy / len * ra);
+    ln.setAttribute("x2", bx - dx / len * rb); ln.setAttribute("y2", by - dy / len * rb);
+  }
+  function showStack(){
+    var sum = stack.reduce(function(a, b){ return a + b; }, 0);
+    var pile = $("pile"); pile.textContent = "";
+    stack.forEach(function(v){ pile.appendChild(el("span", v)); });
+    $("total").textContent = sum;
+    return sum;
+  }
+  function render(){
+    answered = false; stack = [];
+    for (var i = 0; i < 3; i++) {
+      var c = $("c" + i), cap = $("cap" + i);
+      c.className = "circle"; c.textContent = ""; cap.className = "cap"; cap.textContent = "";
+      if (i === q.pos) {
+        c.className = "circle atk"; c.textContent = q.atk; cap.className = "cap atk";
+        if (q.type === "rear") cap.textContent = "リアガード";
+        else {
+          cap.appendChild(document.createTextNode(DRV_NAME[q.type]));
+          var d = el("span", null, "drv");
+          for (var j = 0; j < q.drives; j++) d.appendChild(el("i"));
+          cap.appendChild(d);
+        }
+      } else if (i === 1) cap.textContent = "ヴァンガード";
+    }
+    $("ownC").textContent = q.base;
+    var dmg = $("dmg"); dmg.textContent = "";
+    for (var t = 0; t < q.dt; t++) dmg.appendChild(el("span", "+" + TRIG));
+    if (q.dt) dmg.appendChild(el("small", "ダメージトリガー"));
+    var ask = $("ask"); ask.textContent = "";
+    var goal = q.drives === 0 ? "止める" : q.k > q.drives ? q.drives + "枚引かれても通さない" : q.k + "枚貫通にする";
+    ask.appendChild(el("em", goal)); ask.appendChild(document.createTextNode("には、ガード値いくつ？"));
+    $("guard").className = "guard";
+    showStack();
+    $("hand").hidden = false; $("result").hidden = true;
+    drawArrow();
+  }
+  function answer(){
+    if (answered) return;
+    answered = true;
+    var v = showStack(), ok = v === q.s;
+    stats.total++; if (ok) { stats.correct++; stats.streak++; } else stats.streak = 0;
+    showStats();
+    $("guard").className = "guard " + (ok ? "ok" : "ng");
+    var verdict = $("verdict");
+    verdict.className = "verdict " + (ok ? "ok" : "ng");
+    verdict.textContent = ok ? "正解　ガード値 " + q.s : "不正解　正解は " + q.s;
+    var why = $("why");
+    if (ok) why.hidden = true;
+    else {
+      var p = pen(q.atk, q.def + v, q.drives);
+      var msg = v + " だと合計 " + (q.def + v) + "。" + penLabel(p, q.drives) + "。";
+      if (v > q.s && p === q.k) msg += (v - q.s) + " 多い。";
+      why.textContent = msg; why.hidden = false;
+    }
+    var calc = $("calc"); calc.textContent = "";
+    calc.appendChild(el("span", q.def, "o")); calc.appendChild(document.createTextNode(" + "));
+    calc.appendChild(el("span", q.s, "s")); calc.appendChild(document.createTextNode(" = " + (q.def + q.s)));
+    var rows = $("rows"); rows.textContent = "";
+    for (var t = 0; t <= q.drives; t++) {
+      var a = q.atk + t * TRIG, hit = a >= q.def + q.s;
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td", q.drives === 0 ? "相手" : "トリガー" + t + "枚"));
+      tr.appendChild(el("td", a, "n"));
+      tr.appendChild(el("td", hit ? "ヒット" : "ガード成功", "r " + (hit ? "hit" : "stop")));
+      rows.appendChild(tr);
+    }
+    $("hand").hidden = true; $("result").hidden = false;
+    $("nextBtn").focus({ preventScroll: true });
+  }
+  function next(){ q = generate(); render(); }
+  function showStats(){
+    $("stScore").textContent = stats.correct + "/" + stats.total;
+    $("stStreak").textContent = stats.streak;
+  }
+  function each(sel, fn){ Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  function syncOpts(){
+    each("[data-vg]", function(b){ b.setAttribute("aria-pressed", String(b.dataset.vg === cfg.vg)); });
+    each("[data-type]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.types[b.dataset.type])); });
+    each("[data-dmg]", function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.dmg) === cfg.dmg)); });
+    $("customPower").value = cfg.custom;
+  }
+  function changed(){ save(); syncOpts(); next(); }
+
+  $("hand").addEventListener("click", function(e){
+    var b = e.target.closest("[data-add]"); if (!b || answered) return;
+    stack.push(Number(b.dataset.add)); showStack();
+  });
+  $("undoBtn").addEventListener("click", function(){ stack.pop(); showStack(); });
+  $("goBtn").addEventListener("click", answer);
+  $("nextBtn").addEventListener("click", next);
+  $("resetBtn").addEventListener("click", function(){ stats = { correct: 0, total: 0, streak: 0 }; showStats(); });
+  $("vgOpts").addEventListener("click", function(e){
+    var b = e.target.closest("[data-vg]"); if (!b) return;
+    cfg.vg = b.dataset.vg; changed();
+  });
+  $("customPower").addEventListener("change", function(){
+    cfg.custom = Number(this.value) || 12000; cfg.vg = "custom"; changed();
+  });
+  $("typeOpts").addEventListener("click", function(e){
+    var b = e.target.closest("[data-type]"); if (!b) return;
+    var t = b.dataset.type;
+    cfg.types[t] = !cfg.types[t];
+    if (!Object.keys(DRV).some(function(k){ return cfg.types[k]; })) cfg.types[t] = true;
+    changed();
+  });
+  $("dmgOpts").addEventListener("click", function(e){
+    var b = e.target.closest("[data-dmg]"); if (!b) return;
+    cfg.dmg = Number(b.dataset.dmg); changed();
+  });
+  window.addEventListener("resize", drawArrow);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawArrow);
+
+  function start(data){
+    if (data && data.stats) { stats = data.stats; firstDone = true; }
+    syncOpts(); showStats(); next();
+  }
+  var hot = window.claude && window.claude.hot;
+  if (hot && hot.snapshot) hot.snapshot(function(){ return { stats: stats }; });
+  if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
