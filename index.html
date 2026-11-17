@@ -52,8 +52,8 @@ h1{font-size:20px;font-weight:700;margin:0;letter-spacing:.02em}
 .circle.own{border:3px solid var(--own);color:var(--own)}
 .cap{font-size:12px;color:var(--muted);text-align:center;line-height:1.3;min-height:1.3em;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
 .cap.atk{color:var(--atk);font-weight:700}
-.drv{display:inline-flex;gap:2px}
-.drv i{width:9px;height:13px;border:1.5px solid var(--atk);border-radius:1px;display:block}
+#oppRow .unit{flex-direction:column-reverse}
+#oppRow .cap{white-space:nowrap}
 
 .guard{position:relative;border:1.5px dashed var(--mark);border-radius:8px;min-height:52px;padding:6px 12px;display:flex;align-items:center;gap:10px;background:var(--mat)}
 .guard .glabel{font-size:11px;color:var(--muted);flex:none}
@@ -200,7 +200,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   var TRIG = 10000, STEP = 5000, MAX = 75000, KEY = "guard-drill-v1";
   var DRV = { rear: 0, twin: 2, triple: 3, quad: 4 };
   var TYPES = ["rear", "twin", "triple", "quad"];
-  var DRV_NAME = { twin: "ツイン", triple: "トリプル", quad: "クアドラプル" };
+  var DRV_NAME = { twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
   var cfg = { vgs: { "13000": true }, custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
   var stats = { correct: 0, total: 0, streak: 0 };
   var q = null, stack = [], answered = false;
@@ -319,13 +319,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
       c.className = "circle"; c.textContent = ""; cap.className = "cap"; cap.textContent = "";
       if (i === q.pos) {
         c.className = "circle atk"; c.textContent = q.atk; cap.className = "cap atk";
-        if (q.type === "rear") cap.textContent = "リアガード";
-        else {
-          cap.appendChild(document.createTextNode(DRV_NAME[q.type]));
-          var d = el("span", null, "drv");
-          for (var j = 0; j < q.drives; j++) d.appendChild(el("i"));
-          cap.appendChild(d);
-        }
+        cap.textContent = q.type === "rear" ? "リアガード" : DRV_NAME[q.type];
       } else if (i === 1) cap.textContent = "ヴァンガード";
     }
     $("ownC").textContent = q.base;
