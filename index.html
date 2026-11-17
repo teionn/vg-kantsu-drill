@@ -157,7 +157,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 
   <section class="range">
     <div>
-      <h2>自分のヴァンガード</h2>
+      <h2>自分のヴァンガード（複数選ぶとランダム）</h2>
       <div class="opts" id="vgOpts">
         <button class="opt" type="button" data-vg="10000">G2 10000</button>
         <button class="opt" type="button" data-vg="13000">G3 13000</button>
@@ -167,7 +167,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
       </div>
     </div>
     <div>
-      <h2>相手のアタック</h2>
+      <h2>相手のアタック（複数選ぶとランダム）</h2>
       <div class="opts" id="typeOpts">
         <button class="opt" type="button" data-type="rear">リアガード</button>
         <button class="opt" type="button" data-type="twin">ツインドライブ</button>
@@ -201,13 +201,16 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   var DRV = { rear: 0, twin: 2, triple: 3, quad: 4 };
   var TYPES = ["rear", "twin", "triple", "quad"];
   var DRV_NAME = { twin: "ツイン", triple: "トリプル", quad: "クアドラプル" };
-  var cfg = { vg: "13000", custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
+  var cfg = { vgs: { "13000": true }, custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
   var stats = { correct: 0, total: 0, streak: 0 };
   var q = null, stack = [], answered = false;
 
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (saved && saved.types) cfg = saved;
+    if (saved && saved.types) {
+      cfg = saved;
+      if (!cfg.vgs) { cfg.vgs = {}; cfg.vgs[saved.vg || "13000"] = true; }
+    }
   } catch (e) {}
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
 
@@ -215,8 +218,10 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
   function el(tag, text, cls){ var e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
   function vgPower(){
-    if (cfg.vg === "custom") { var v = Math.round(Number(cfg.custom) / 1000) * 1000; return v > 0 ? v : 12000; }
-    return Number(cfg.vg);
+    var on = Object.keys(cfg.vgs).filter(function(k){ return cfg.vgs[k]; });
+    var pick = on.length ? on[ri(0, on.length - 1)] : "13000";
+    if (pick === "custom") { var v = Math.round(Number(cfg.custom) / 1000) * 1000; return v > 0 && v <= 127000 ? v : 12000; }
+    return Number(pick);
   }
   function rndPower(lo, hi){
     var v;
@@ -392,7 +397,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   }
   function each(sel, fn){ Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
   function syncOpts(){
-    each("[data-vg]", function(b){ b.setAttribute("aria-pressed", String(b.dataset.vg === cfg.vg)); });
+    each("[data-vg]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.vgs[b.dataset.vg])); });
     each("[data-type]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.types[b.dataset.type])); });
     each("[data-dmg]", function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.dmg) === cfg.dmg)); });
     $("customPower").value = cfg.custom;
@@ -421,10 +426,13 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   $("resetBtn").addEventListener("click", function(){ stats = { correct: 0, total: 0, streak: 0 }; showStats(); });
   $("vgOpts").addEventListener("click", function(e){
     var b = e.target.closest("[data-vg]"); if (!b) return;
-    cfg.vg = b.dataset.vg; changed();
+    var v = b.dataset.vg;
+    cfg.vgs[v] = !cfg.vgs[v];
+    if (!Object.keys(cfg.vgs).some(function(k){ return cfg.vgs[k]; })) cfg.vgs[v] = true;
+    changed();
   });
   $("customPower").addEventListener("change", function(){
-    cfg.custom = Number(this.value) || 12000; cfg.vg = "custom"; changed();
+    cfg.custom = Number(this.value) || 12000; cfg.vgs.custom = true; changed();
   });
   $("typeOpts").addEventListener("click", function(e){
     var b = e.target.closest("[data-type]"); if (!b) return;
