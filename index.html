@@ -29,6 +29,30 @@
   --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
   --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
 }
+:root[data-skin="light"]{
+  color-scheme:light;
+  --bg:#eceef3; --mat:#ffffff; --mat-edge:#d3d8e3; --mark:#b4bccb;
+  --text:#141a2e; --muted:#5a6279; --atk:#c4312a; --own:#1d5cbb;
+  --shield:#8a5a00; --shield-bg:#ffe7a1; --ok:#17814a;
+}
+:root[data-skin="dark"]{
+  color-scheme:dark;
+  --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
+  --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
+  --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
+}
+:root[data-skin="mat"]{
+  color-scheme:dark;
+  --bg:#0b1322; --mat:#17253f; --mat-edge:#2a4069; --mark:#5d7099;
+  --text:#e9efff; --muted:#93a4c6; --atk:#ff5d49; --own:#4fb9ff;
+  --shield:#ffd54a; --shield-bg:#3b3312; --ok:#57d48c;
+}
+:root[data-skin="paper"]{
+  color-scheme:light;
+  --bg:#dfe0db; --mat:#fbfbf7; --mat-edge:#c3ccd4; --mark:#9aa3ab;
+  --text:#1b1b1b; --muted:#6a6f75; --atk:#d3262b; --own:#2f4a6b;
+  --shield:#1b1b1b; --shield-bg:#ecebe2; --ok:#1f7a4a;
+}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--text);font-family:var(--jp);font-size:16px;line-height:1.6}
@@ -103,6 +127,9 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 .code b{display:block;font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:.05em;color:var(--text)}
 .codemsg{font-size:12px;color:var(--atk)}
 #codeInput{font:inherit;font-size:16px;width:7em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text);text-transform:uppercase}
+.skins{display:flex;gap:10px;align-items:center}
+.skin{width:32px;height:32px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--mark);background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%)}
+.skin[aria-pressed="true"]{outline:2px solid var(--text);outline-offset:3px}
 #customPower{font:inherit;font-size:16px;width:6em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text)}
 .reset{background:none;border:0;padding:4px 0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;align-self:flex-start}
 @media (max-width:400px){.circle{width:74px;height:74px;font-size:26px}}
@@ -156,6 +183,16 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   </section>
 
   <section class="range">
+    <div>
+      <h2>テーマ</h2>
+      <div class="skins" id="skinOpts">
+        <button class="skin" type="button" data-skin="auto" style="--a:#ffffff;--b:#191e2c" title="端末に合わせる" aria-label="端末に合わせる"></button>
+        <button class="skin" type="button" data-skin="light" style="--a:#ffffff;--b:#1d5cbb" title="ライト" aria-label="ライト"></button>
+        <button class="skin" type="button" data-skin="dark" style="--a:#191e2c;--b:#6fa9ff" title="ダーク" aria-label="ダーク"></button>
+        <button class="skin" type="button" data-skin="mat" style="--a:#17253f;--b:#ffd54a" title="プレイマット" aria-label="プレイマット"></button>
+        <button class="skin" type="button" data-skin="paper" style="--a:#fbfbf7;--b:#d3262b" title="紙" aria-label="紙"></button>
+      </div>
+    </div>
     <div>
       <h2>自分のヴァンガード（複数選ぶとランダム）</h2>
       <div class="opts" id="vgOpts">
@@ -390,6 +427,12 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
     $("stStreak").textContent = stats.streak;
   }
   function each(sel, fn){ Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  function applySkin(){
+    var k = cfg.skin || "auto";
+    if (k === "auto") document.documentElement.removeAttribute("data-skin");
+    else document.documentElement.setAttribute("data-skin", k);
+    each("[data-skin]", function(b){ if (b !== document.documentElement) b.setAttribute("aria-pressed", String(b.dataset.skin === k)); });
+  }
   function syncOpts(){
     each("[data-vg]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.vgs[b.dataset.vg])); });
     each("[data-type]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.types[b.dataset.type])); });
@@ -405,6 +448,10 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
   $("undoBtn").addEventListener("click", function(){ stack.pop(); showStack(); });
   $("goBtn").addEventListener("click", answer);
   $("nextBtn").addEventListener("click", next);
+  $("skinOpts").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-skin]"); if (!b) return;
+    cfg.skin = b.dataset.skin; save(); applySkin();
+  });
   $("codeBtn").addEventListener("click", function(){
     var done = function(){ $("codeLab").textContent = "コピーした"; };
     try { navigator.clipboard.writeText(q.code).then(done, function(){}); } catch (e) {}
@@ -444,7 +491,7 @@ td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
 
   function start(data){
     if (data && data.stats) stats = data.stats;
-    syncOpts(); showStats();
+    applySkin(); syncOpts(); showStats();
     if (!fromHash()) next();
   }
   var hot = window.claude && window.claude.hot;
