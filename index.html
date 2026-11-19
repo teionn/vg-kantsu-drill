@@ -155,7 +155,22 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .qcode{justify-self:start;align-self:end;min-height:44px;padding:2px 0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;text-align:left;font-size:11px;line-height:1.2;color:var(--muted)}
 .qcode b{font:600 17px/1.15 var(--num);letter-spacing:.05em;color:var(--text)}
 .stat b,.circle,.guard .gv,.side b,.zero,.ticks,.step,.calc,.rrow .a,.rrow .c,.inp,.weak .m,.weak .t,.qcode b,.jin{font-style:italic}
-.guard .gv.none{font-style:normal}
+.guard .gv.none,.inp.jp{font-style:normal}
+.inp.jp{font:400 15px var(--jp)}
+.runbar{display:flex;align-items:center;gap:8px;min-height:28px;font-size:13px}
+.runbar[hidden],.sum[hidden]{display:none}
+.runbar b{flex:none}
+.runbar span{flex:1;color:var(--muted)}
+.runbar .textbtn{min-height:28px;align-self:center}
+.sum{margin:4px 0 0;padding-top:6px;border-top:1px solid var(--edge);font-size:14px;font-weight:700}
+.sets{display:flex;flex-direction:column}
+.sets div{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 0;border-top:1px solid var(--edge);font-size:14px}
+.sets div:first-child{border-top:0}
+.sets .nm{flex:1;font-weight:700}
+.sets .ct{font-size:12px;color:var(--muted);white-space:nowrap}
+.sets .textbtn{align-self:center}
+.sets .br{flex-basis:100%;height:0}
+#setMsg{color:var(--text);word-break:break-all}
 ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){.seg.on{box-shadow:none}}
 </style>
@@ -175,6 +190,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   </header>
 
   <div class="body">
+    <div class="runbar" id="runbar" hidden><b id="runName"></b><span id="runPos"></span><button class="textbtn" id="runSave" type="button" style="color:var(--own)" hidden>保存</button><button class="textbtn" id="runStop" type="button">やめる</button></div>
     <section class="board" aria-live="polite">
       <div class="row3" id="opp"></div>
       <div class="guard" id="guard"><span class="gl">ガード値</span><span class="gv" id="gv">0</span></div>
@@ -212,6 +228,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       <p class="logic" id="logic"></p>
       <p class="calc" id="calc"></p>
       <div id="rows"></div>
+      <p class="sum" id="runSum" hidden></p>
     </section>
   </div>
 
@@ -221,6 +238,21 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       <div class="phead">
         <h2 id="sheetTitle">設定</h2>
         <button class="iconbtn" id="closeSheet" type="button" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <div class="group">
+        <p class="gtitle">実戦プリセット</p>
+        <div class="sets" id="sets"></div>
+        <div class="field">
+          <span class="flabel">自分で作る<small>問題コードを受ける順に並べる</small></span>
+          <input class="inp jp" id="setName" type="text" maxlength="20" placeholder="名前" aria-label="プリセットの名前" autocomplete="off">
+          <input class="inp" id="setCodes" type="text" placeholder="コードを空白で区切る" aria-label="問題コードの並び" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase">
+          <div class="chips">
+            <button class="chip" id="setAdd" type="button">いまの問題を追加</button>
+            <button class="chip" id="setSave" type="button">保存</button>
+          </div>
+          <div class="codemsg" id="setMsg" role="status"></div>
+        </div>
       </div>
 
       <div class="group">
@@ -298,10 +330,10 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   var LEG = { single: true, twin: true };
   var NAME = { rear: "リアガード", single: "シングルドライブ", twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
 
-  var store = { cfg: { vgs: { "10000": true, "13000": true }, custom: 12000, types: { rear: true, single: true, twin: true, triple: true, quad: true }, dmg: 2, leg: false, plus: false, minus: false, skin: "div" }, weak: {} };
+  var store = { cfg: { vgs: { "10000": true, "13000": true }, custom: 12000, types: { rear: true, single: true, twin: true, triple: true, quad: true }, dmg: 2, leg: false, plus: false, minus: false, skin: "div" }, weak: {}, sets: [] };
   try {
     var s = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {} };
+    if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {}, sets: Array.isArray(s.sets) ? s.sets : [] };
   } catch (e) {}
   var cfg = store.cfg;
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
@@ -385,6 +417,40 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     return (o.leg ? "前" : "") + o.k + "枚貫通" + (o.leg && !short && 2 * o.k <= o.drives ? "（通常" + 2 * o.k + "枚）" : "");
   }
 
+  /* ---------- presets ---------- */
+  var BUILTIN = [
+    { name: "序盤 G2同士", steps: [["rear", 15000, 10000, 0, 1, 0], ["single", 18000, 10000, 0, 1, 1], ["rear", 13000, 10000, 1, 1, 2]] },
+    { name: "中盤 3回攻撃", steps: [["rear", 23000, 13000, 0, 1, 0], ["twin", 28000, 13000, 0, 2, 1], ["rear", 28000, 13000, 1, 1, 2]] },
+    { name: "終盤 高打点", steps: [["rear", 33000, 13000, 0, 1, 2], ["triple", 43000, 13000, 1, 2, 1], ["rear", 38000, 13000, 1, 1, 0], ["rear", 28000, 13000, 2, 1, 2]] }
+  ].map(function(b){ return { name: b.name, builtin: true, codes: b.steps.map(function(a){ return build.apply(null, a).code; }) }; });
+  var run = null;
+  function startRun(set){
+    var codes = set.codes.filter(function(c){ return !!decode(c); });
+    if (!codes.length) return false;
+    run = { name: set.name, codes: codes, i: 0, res: [], done: false };
+    q = decode(codes[0]); render(); return true;
+  }
+  function stopRun(){ run = null; next(); }
+  function shareSet(st){
+    var url = location.origin + location.pathname + "?set=" + st.codes.join(".") + "&name=" + encodeURIComponent(st.name);
+    var show = function(){ $("setMsg").textContent = url; };
+    if (navigator.share) { try { navigator.share({ title: "貫通ドリル " + st.name, url: url }).catch(function(){}); return; } catch (e) {} }
+    try { navigator.clipboard.writeText(url).then(function(){ $("setMsg").textContent = "「" + st.name + "」のリンクをコピーしました"; }, show); } catch (e) { show(); }
+  }
+  function fromShare(){
+    var p;
+    try { p = new URLSearchParams(location.search); } catch (e) { return false; }
+    var raw = (p.get("set") || "").toUpperCase().split(/[^0-9A-Z]+/).filter(Boolean).slice(0, 12);
+    if (!raw.length || raw.some(function(c){ return !decode(c); })) return false;
+    var st = { name: (p.get("name") || "共有プリセット").slice(0, 20), codes: raw.map(function(c){ return decode(c).code; }) };
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    if (!startRun(st)) return false;
+    var key = st.name + "|" + st.codes.join(".");
+    var have = BUILTIN.concat(store.sets).some(function(x){ return x.name + "|" + x.codes.join(".") === key; });
+    if (!have) { run.shared = st; $("runSave").hidden = false; }
+    return true;
+  }
+
   /* ---------- render ---------- */
   var segs = [], ticks = $("ticks");
   for (var i = 1; i <= 10; i++) (function(x){
@@ -432,6 +498,8 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     $("result").hidden = true;
     $("mainBtn").textContent = "これでガード";
     $("codeVal").textContent = q.code; $("copyLab").textContent = "コピー";
+    $("runbar").hidden = !run; $("runSum").hidden = true; $("runSave").hidden = !(run && run.shared);
+    if (run) { $("runName").textContent = run.name; $("runPos").textContent = (run.i + 1) + " / " + run.codes.length + " 回目"; }
     showV();
   }
   function answer(){
@@ -475,6 +543,17 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     });
     $("result").hidden = false;
     $("mainBtn").textContent = "次の問題";
+    if (run) {
+      run.res.push({ ok: ok, v: v, s: q.s });
+      if (run.i >= run.codes.length - 1) {
+        run.done = true;
+        var rc = 0, used = 0, best = 0;
+        run.res.forEach(function(r){ if (r.ok) rc++; used += r.v; best += r.s; });
+        $("runSum").textContent = "場面の結果　" + rc + " / " + run.res.length + " 正解・使ったシールド " + used + "（最小 " + best + "）";
+        $("runSum").hidden = false;
+        $("mainBtn").textContent = "もう一度";
+      } else $("mainBtn").textContent = "次のアタック";
+    }
     fx(ok);
   }
   function reduced(){ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
@@ -487,10 +566,14 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       : [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }], { duration: good ? 360 : 420, easing: "ease-out" });
   }
   function next(){
+    if (run) {
+      if (run.done) { run.i = 0; run.res = []; run.done = false; } else run.i++;
+      q = decode(run.codes[run.i]); render(); return;
+    }
     if (/^#q-/i.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} }
     q = generate(); render();
   }
-  function load(str){ var c = decode(str); if (!c) return false; q = c; render(); return true; }
+  function load(str){ var c = decode(str); if (!c) return false; run = null; q = c; render(); return true; }
   function fromHash(){ var m = /^#q-([0-9a-z]{1,6})$/i.exec(location.hash); return !!m && load(m[1]); }
   function showStats(){ $("stScore").textContent = stats.c + "/" + stats.n; $("stStreak").textContent = stats.streak; }
   setInterval(function(){
@@ -528,9 +611,30 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     if (g3) TYPES.forEach(function(t){ cfg.types[t] = true; });
     else if (cfg.vgs["10000"] && !cfg.vgs.custom) TYPES.forEach(function(t){ cfg.types[t] = t === "rear" || t === "single"; });
   }
-  function changed(){ save(); syncOpts(); next(); }
+  function changed(){ run = null; save(); syncOpts(); next(); }
+  function renderSets(){
+    var box = $("sets"); box.textContent = "";
+    BUILTIN.concat(store.sets).forEach(function(st){
+      var row = el("div");
+      row.appendChild(el("span", st.name, "nm"));
+      row.appendChild(el("span", st.codes.length + "回攻撃", "ct"));
+      row.appendChild(el("span", null, "br"));
+      var go = el("button", "はじめる", "chip"); go.type = "button";
+      go.addEventListener("click", function(){ if (startRun(st)) closeSheet(); });
+      row.appendChild(go);
+      var sh = el("button", "配布リンク", "chip"); sh.type = "button";
+      sh.addEventListener("click", function(){ shareSet(st); });
+      row.appendChild(sh);
+      if (!st.builtin) {
+        var del = el("button", "削除", "textbtn"); del.type = "button";
+        del.addEventListener("click", function(){ store.sets.splice(store.sets.indexOf(st), 1); save(); renderSets(); });
+        row.appendChild(del);
+      }
+      box.appendChild(row);
+    });
+  }
   function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "div"); }
-  function openSheet(){ renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
+  function openSheet(){ renderSets(); renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("setMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
   function closeSheet(){ $("sheet").hidden = true; $("openSheet").focus(); }
 
   $("openSheet").addEventListener("click", openSheet);
@@ -581,6 +685,21 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   $("jump").addEventListener("submit", function(e){ e.preventDefault(); jump(); });
   $("jumpIn").addEventListener("paste", function(){ setTimeout(jump, 0); });
   $("jumpIn").addEventListener("input", function(){ this.classList.remove("bad"); });
+  $("runStop").addEventListener("click", stopRun);
+  $("runSave").addEventListener("click", function(){
+    if (!run || !run.shared) return;
+    store.sets.push(run.shared); save(); run.shared = null; this.hidden = true;
+  });
+  $("setAdd").addEventListener("click", function(){ var f = $("setCodes"); f.value = (f.value.trim() + " " + q.code).trim(); });
+  $("setSave").addEventListener("click", function(){
+    var name = $("setName").value.trim(), raw = $("setCodes").value.toUpperCase().split(/[^0-9A-Z]+/).filter(Boolean);
+    var bad = raw.filter(function(c){ return !decode(c); });
+    if (!name) { $("setMsg").textContent = "名前を入れてください"; return; }
+    if (!raw.length) { $("setMsg").textContent = "問題コードを1つ以上入れてください"; return; }
+    if (bad.length) { $("setMsg").textContent = "使えないコードがあります: " + bad.join(" "); return; }
+    store.sets.push({ name: name, codes: raw.map(function(c){ return decode(c).code; }) });
+    save(); $("setName").value = ""; $("setCodes").value = ""; $("setMsg").textContent = ""; renderSets();
+  });
   $("loadCode").addEventListener("click", loadFromInput);
   $("codeIn").addEventListener("keydown", function(e){ if (e.key === "Enter") loadFromInput(); });
   $("reset").addEventListener("click", function(){ stats = { c: 0, n: 0, streak: 0 }; store.weak = {}; save(); showStats(); renderWeak(); });
@@ -593,7 +712,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   window.addEventListener("hashchange", fromHash);
 
   applySkin(); syncOpts(); showStats();
-  if (!fromHash()) next();
+  if (!fromShare() && !fromHash()) next();
 })();
 </script>
 </body>
