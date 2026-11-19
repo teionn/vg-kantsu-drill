@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,500;1,600;1,700&family=Barlow:wght@500;600;700&family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:light dark;--num:"Barlow Condensed",sans-serif;--jp:"Barlow","BIZ UDPGothic","Hiragino Sans",sans-serif;--r:4px}
+:root{color-scheme:light dark;--num:"Barlow Condensed","Avenir Next Condensed","Roboto Condensed","Arial Narrow",sans-serif;--jp:"Barlow","BIZ UDPGothic","Hiragino Sans",sans-serif;--r:4px}
 :root,[data-skin="div"]{
   --base:oklch(.18 .04 272);
   --ball:linear-gradient(135deg,oklch(.55 .22 22),oklch(.42 .17 300) 50%,oklch(.5 .2 262));
@@ -38,6 +38,7 @@
   --ok:light-dark(oklch(.47 .13 155),oklch(.8 .15 155));
 }
 *{box-sizing:border-box}
+.stat b,.circle,.guard .gv,.side b,.zero,.ticks,.step,.calc,.rrow .a,.rrow .c,.inp,.weak .m,.weak .t,.code b{font-style:italic}
 html,body{margin:0;min-height:100%}
 body{background:var(--frame);background-attachment:fixed;color:var(--text);font-family:var(--jp);font-size:15px;line-height:1.5;padding:7px;min-height:100dvh}
 button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -59,7 +60,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .cell{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
 .cell .lab{font-size:12px;color:var(--muted);min-height:18px;white-space:nowrap}
 .cell.atk .lab{color:var(--atk);font-weight:700}
-.circle{width:66px;height:66px;border-radius:50%;border:1.5px solid var(--edge);display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--num);letter-spacing:-.02em}
+.circle{width:66px;height:66px;flex:none;white-space:nowrap;border-radius:50%;border:1.5px solid var(--edge);display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--num);letter-spacing:-.02em}
 .cell.atk .circle{border:3px solid var(--atk);background:var(--mat);color:var(--atk)}
 .tags{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:2px}
 .tags span{padding:1px 6px;border:1px solid var(--atk);border-radius:var(--r);font-size:11px;font-weight:700;line-height:1.4;color:var(--atk);white-space:nowrap}
@@ -92,7 +93,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .seg.on{background:var(--sh);box-shadow:0 0 10px color-mix(in oklch,var(--sh) 50%,transparent)}
 .ticks{margin-top:3px;font:500 11px/1 var(--num);color:var(--muted);text-align:right;white-space:nowrap}
 .acts{display:flex;gap:10px}
-.step{flex:none;width:64px;height:50px;border:1px solid var(--edge);border-radius:var(--r);background:var(--mat);font:600 16px var(--num);cursor:pointer}
+.step{flex:none;min-width:64px;padding:0 8px;white-space:nowrap;height:50px;border:1px solid var(--edge);border-radius:var(--r);background:var(--mat);font:600 16px var(--num);cursor:pointer}
 .main{flex:1;height:50px;border:0;border-radius:var(--r);background:var(--text);color:var(--bg);font-size:16px;font-weight:700;cursor:pointer}
 
 .result{background:var(--mat);border:1px solid var(--edge);border-radius:var(--r);padding:8px 14px;display:flex;flex-direction:column;gap:3px}
@@ -283,7 +284,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   var LEG = { single: true, twin: true };
   var NAME = { rear: "リアガード", single: "シングルドライブ", twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
 
-  var store = { cfg: { vgs: { "13000": true }, custom: 12000, types: { rear: true, single: false, twin: true, triple: false, quad: false }, dmg: 1, leg: false, plus: false, minus: false, skin: "veil" }, weak: {} };
+  var store = { cfg: { vgs: { "13000": true }, custom: 12000, types: { rear: true, single: false, twin: true, triple: false, quad: false }, dmg: 1, leg: false, plus: false, minus: false, skin: "div" }, weak: {} };
   try {
     var s = JSON.parse(localStorage.getItem(KEY) || "null");
     if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {} };
@@ -488,7 +489,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     each("[data-type]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.types[b.dataset.type])); });
     each("[data-spec]", function(b){ b.setAttribute("aria-pressed", String(!!cfg[b.dataset.spec])); });
     each("[data-dmg]", function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.dmg) === cfg.dmg)); });
-    each("button.skin", function(b){ b.setAttribute("aria-pressed", String(b.dataset.skin === (cfg.skin || "veil"))); });
+    each("button.skin", function(b){ b.setAttribute("aria-pressed", String(b.dataset.skin === (cfg.skin || "div"))); });
     $("custom").value = cfg.custom;
   }
   function renderWeak(){
@@ -506,7 +507,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     });
   }
   function changed(){ save(); syncOpts(); next(); }
-  function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "veil"); }
+  function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "div"); }
   function openSheet(){ renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
   function closeSheet(){ $("sheet").hidden = true; $("openSheet").focus(); }
 
@@ -516,7 +517,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
   $("skins").addEventListener("click", function(e){
     var b = e.target.closest("button.skin"); if (!b) return;
-    var key = b.dataset.skin; if ((cfg.skin || "veil") === key) return;
+    var key = b.dataset.skin; if ((cfg.skin || "div") === key) return;
     var apply = function(){ cfg.skin = key; save(); applySkin(); syncOpts(); };
     if (!document.startViewTransition || reduced()) return apply();
     var r = b.querySelector(".dot").getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
