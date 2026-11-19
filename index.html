@@ -117,6 +117,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .rrow .l{flex:1}
 .rrow .a{font:600 16px var(--num);color:var(--atk)}
 .rrow .c{font:500 13px var(--num);color:var(--muted)}
+.rrow .c i{font-size:16px;font-weight:600;color:var(--own)}
+.rrow small,.calc small{font:400 10px var(--jp);font-style:normal;letter-spacing:0;color:var(--muted);margin-right:3px}
+.rrow .c small{margin-left:5px}
 .rrow b{width:4.5em;text-align:right}
 .rrow .hit{color:var(--atk)} .rrow .stop{color:var(--ok)}
 
@@ -463,8 +466,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       : q.k === 1 ? "トリガーなし" : "トリガー" + (q.k - 1) + "枚";
     $("logic").textContent = "止めるラインは" + line + "の " + q.need + "。" + (q.s === 0 ? "ノーガードの " + q.def + " で足りる" : "合計がこれを超える最小値");
     var calc = $("calc"); calc.textContent = "";
-    calc.appendChild(el("span", q.def, "o")); calc.appendChild(document.createTextNode(" + "));
-    calc.appendChild(el("span", q.s, "s")); calc.appendChild(document.createTextNode(" = " + (q.def + q.s)));
+    calc.appendChild(el("small", "自分")); calc.appendChild(el("span", q.def, "o")); calc.appendChild(document.createTextNode(" + "));
+    calc.appendChild(el("small", "ガード")); calc.appendChild(el("span", q.s, "s")); calc.appendChild(document.createTextNode(" = "));
+    calc.appendChild(el("span", q.def + q.s, "o"));
     var combos = [];
     if (q.leg) {
       for (var f = 0; f <= q.drives; f++) for (var n = 0; f + n <= q.drives; n++)
@@ -474,8 +478,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     var rt = ok ? q.def + q.s : q.def + v, rows = $("rows"); rows.textContent = "";
     combos.forEach(function(cb, i){
       var hit = cb.a >= rt, r = el("div", null, "rrow");
-      r.appendChild(el("span", cb.label, "l")); r.appendChild(el("span", cb.a, "a"));
-      r.appendChild(el("span", (hit ? "≥ " : "< ") + rt, "c")); r.appendChild(el("b", hit ? "ヒット" : "ガード", hit ? "hit" : "stop"));
+      r.appendChild(el("span", cb.label, "l"));
+      var ra = el("span", null, "a"); ra.appendChild(el("small", "相手")); ra.appendChild(document.createTextNode(cb.a)); r.appendChild(ra);
+      var rc = el("span", null, "c"); rc.appendChild(document.createTextNode(hit ? "≥" : "<")); rc.appendChild(el("small", "自分")); rc.appendChild(el("i", rt)); r.appendChild(rc); r.appendChild(el("b", hit ? "ヒット" : "ガード", hit ? "hit" : "stop"));
       rows.appendChild(r);
       if (r.animate && !reduced()) r.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 260, delay: 140 + i * 70, fill: "backwards", easing: "ease-out" });
     });
