@@ -289,7 +289,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   var LEG = { single: true, twin: true };
   var NAME = { rear: "リアガード", single: "シングルドライブ", twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
 
-  var store = { cfg: { vgs: { "10000": true, "13000": true }, custom: 12000, types: { rear: true, single: true, twin: true, triple: true, quad: true }, dmg: 2, leg: true, plus: false, minus: false, skin: "div" }, weak: {} };
+  var store = { cfg: { vgs: { "10000": true, "13000": true }, custom: 12000, types: { rear: true, single: true, twin: true, triple: true, quad: true }, dmg: 2, leg: false, plus: false, minus: false, skin: "div" }, weak: {} };
   try {
     var s = JSON.parse(localStorage.getItem(KEY) || "null");
     if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {} };
