@@ -2,501 +2,566 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ガード値ドリル</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>貫通ドリル</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,500;1,600;1,700&family=Barlow:wght@500;600;700&family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* layout: 上から 盤面(相手の前列 → ガード置き場 → 自分のヴァンガード) → 問い → 手札(シールド) → 解説 → 設定 */
+:root{color-scheme:light dark;--num:"Barlow Condensed",sans-serif;--jp:"Barlow","BIZ UDPGothic","Hiragino Sans",sans-serif;--r:4px}
+:root,[data-skin="div"]{
+  --base:oklch(.18 .04 272);
+  --ball:linear-gradient(135deg,oklch(.55 .22 22),oklch(.42 .17 300) 50%,oklch(.5 .2 262));
+  --frame:linear-gradient(120deg,oklch(.47 .2 262),oklch(.4 .17 300) 50%,oklch(.52 .22 22));
+  --bg:light-dark(oklch(.965 .008 270),oklch(.16 .035 272));
+  --mat:light-dark(oklch(.995 .003 270),oklch(.21 .045 272));
+  --edge:light-dark(oklch(.84 .025 270),oklch(.38 .06 272));
+  --text:light-dark(oklch(.21 .05 272),oklch(.96 .008 270));
+  --muted:light-dark(oklch(.44 .04 272),oklch(.79 .03 270));
+}
+[data-skin="veil"]{
+  --base:oklch(.19 .008 60);
+  --ball:conic-gradient(oklch(.7 .19 50) 0 105deg,#0c0a09 105deg 165deg,oklch(.7 .19 50) 165deg);
+  --frame:radial-gradient(circle at 0 0,#0c0a09 0 64px,transparent 65px),radial-gradient(circle at 100% 100%,#0c0a09 0 64px,transparent 65px),oklch(.7 .19 50);
+  --r:2px;
+  --bg:light-dark(oklch(.95 .004 80),oklch(.17 .008 60));
+  --mat:light-dark(oklch(.985 .003 80),oklch(.22 .01 60));
+  --edge:light-dark(oklch(.82 .012 70),oklch(.37 .015 60));
+  --text:light-dark(oklch(.2 .01 60),oklch(.95 .005 80));
+  --muted:light-dark(oklch(.43 .02 60),oklch(.76 .015 70));
+}
 :root{
-  --bg:#eceef3; --mat:#ffffff; --mat-edge:#d3d8e3; --mark:#b4bccb;
-  --text:#141a2e; --muted:#5a6279; --atk:#c4312a; --own:#1d5cbb;
-  --shield:#8a5a00; --shield-bg:#ffe7a1; --ok:#17814a;
-  --num:"Barlow Condensed","Zen Kaku Gothic New",sans-serif;
-  --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
-    --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
-    --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
-  }
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
-  --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
-  --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
-}
-:root[data-skin="light"]{
-  color-scheme:light;
-  --bg:#eceef3; --mat:#ffffff; --mat-edge:#d3d8e3; --mark:#b4bccb;
-  --text:#141a2e; --muted:#5a6279; --atk:#c4312a; --own:#1d5cbb;
-  --shield:#8a5a00; --shield-bg:#ffe7a1; --ok:#17814a;
-}
-:root[data-skin="dark"]{
-  color-scheme:dark;
-  --bg:#0f121b; --mat:#191e2c; --mat-edge:#2c3346; --mark:#4a546e;
-  --text:#eef0f6; --muted:#98a1b8; --atk:#ff6f62; --own:#6fa9ff;
-  --shield:#ffcb52; --shield-bg:#3a2f10; --ok:#4dca8b;
-}
-:root[data-skin="mat"]{
-  color-scheme:dark;
-  --bg:#0b1322; --mat:#17253f; --mat-edge:#2a4069; --mark:#5d7099;
-  --text:#e9efff; --muted:#93a4c6; --atk:#ff5d49; --own:#4fb9ff;
-  --shield:#ffd54a; --shield-bg:#3b3312; --ok:#57d48c;
-}
-:root[data-skin="paper"]{
-  color-scheme:light;
-  --bg:#dfe0db; --mat:#fbfbf7; --mat-edge:#c3ccd4; --mark:#9aa3ab;
-  --text:#1b1b1b; --muted:#6a6f75; --atk:#d3262b; --own:#2f4a6b;
-  --shield:#1b1b1b; --shield-bg:#ecebe2; --ok:#1f7a4a;
+  --atk:light-dark(oklch(.53 .21 28),oklch(.72 .2 28));
+  --own:light-dark(oklch(.47 .12 220),oklch(.82 .12 210));
+  --sh:light-dark(oklch(.42 .04 250),oklch(.95 .02 250));
+  --shbg:light-dark(oklch(.9 .02 250),oklch(.33 .03 250));
+  --ok:light-dark(oklch(.47 .13 155),oklch(.8 .15 155));
 }
 *{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--text);font-family:var(--jp);font-size:16px;line-height:1.6}
-button{touch-action:manipulation;font:inherit;color:inherit}
-main{max-width:560px;margin:0 auto;padding:14px 16px 40px;display:flex;flex-direction:column;gap:12px}
-header{display:flex;justify-content:space-between;align-items:baseline}
-h1{font-size:20px;font-weight:700;margin:0;letter-spacing:.02em}
-.score{font-size:13px;color:var(--muted)}
-.score b{font-family:var(--num);font-weight:700;font-size:22px;color:var(--text);margin:0 2px 0 4px;font-variant-numeric:tabular-nums}
-
-.mat{position:relative;background:var(--mat);border:1px solid var(--mat-edge);border-radius:10px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
-.mat svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#arrow{stroke:var(--atk);stroke-width:3;stroke-dasharray:7 6;animation:march .6s linear infinite}
-#head path{fill:var(--atk)}
-@keyframes march{to{stroke-dashoffset:-13}}
-@media (prefers-reduced-motion:reduce){#arrow{animation:none}}
-.row{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;align-items:start;position:relative}
-.unit{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
-.circle{width:80px;height:80px;border-radius:50%;border:1.5px solid var(--mark);display:flex;align-items:center;justify-content:center;font-family:var(--num);font-weight:700;font-size:28px;line-height:1;font-variant-numeric:tabular-nums;background:var(--mat)}
-.circle.atk{border:3px solid var(--atk);color:var(--atk)}
-.circle.own{border:3px solid var(--own);color:var(--own)}
-.cap{font-size:12px;color:var(--muted);text-align:center;line-height:1.3;min-height:1.3em;display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
-.cap.atk{color:var(--atk);font-weight:700}
-#oppRow .unit{flex-direction:column-reverse}
-#oppRow .cap{white-space:nowrap}
-
-.guard{position:relative;border:1.5px dashed var(--mark);border-radius:8px;min-height:52px;padding:6px 12px;display:flex;align-items:center;gap:10px;background:var(--mat)}
-.guard .glabel{font-size:11px;color:var(--muted);flex:none}
-.pile{flex:1;display:flex;min-width:0;padding-left:8px}
-.pile span{flex:0 1 46px;min-width:10px;height:30px;margin-left:-8px;background:var(--shield-bg);border:1.5px solid var(--shield);border-radius:3px;color:var(--shield);font-family:var(--num);font-weight:600;font-size:16px;line-height:27px;text-align:center;overflow:hidden}
-.total{font-family:var(--num);font-weight:700;font-size:32px;line-height:1;color:var(--shield);font-variant-numeric:tabular-nums;flex:none}
-.guard.ok{border-style:solid;border-color:var(--ok)} .guard.ok .total{color:var(--ok)}
-.guard.ng{border-style:solid;border-color:var(--atk)} .guard.ng .total{color:var(--atk);text-decoration:line-through}
-.dmg{display:flex;flex-direction:column;align-items:flex-start;justify-self:start;align-self:center;line-height:1.15;margin-left:-6px}
-.dmg small{font-size:12px;font-weight:700;color:var(--own);white-space:nowrap}
-.dmg b{font-family:var(--num);font-weight:700;font-size:28px;color:var(--own);font-variant-numeric:tabular-nums}
-.dmg span{font-size:11px;color:var(--muted)}
-
-.ask{font-size:18px;font-weight:700;margin:2px 0 0;text-wrap:balance}
-.ask em{font-style:normal;background:var(--shield-bg);color:var(--shield);padding:0 6px;border-radius:4px}
-.note{font-size:12px;color:var(--muted);margin:0}
-
-.hand{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.hand[hidden],.result[hidden]{display:none}
-.card{background:var(--mat);border:1px solid var(--mat-edge);border-radius:8px;padding:10px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1;gap:2px}
-.card small{font-size:10px;color:var(--muted)}
-.card b{font-family:var(--num);font-weight:700;font-size:28px;color:var(--text);font-variant-numeric:tabular-nums}
-.card:hover,.card:active{border-color:var(--shield);background:var(--shield-bg)} .card:hover b,.card:active b{color:var(--shield)}
-.act{border:1px solid var(--mat-edge);background:none;border-radius:8px;padding:12px 0;font-size:14px;cursor:pointer}
-.act.go{grid-column:span 2;background:var(--text);color:var(--bg);border-color:var(--text);font-weight:700}
+html,body{margin:0;min-height:100%}
+body{background:var(--frame);background-attachment:fixed;color:var(--text);font-family:var(--jp);font-size:15px;line-height:1.5;padding:7px;min-height:100dvh}
+button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button:focus-visible,input:focus-visible{outline:3px solid var(--own);outline-offset:2px}
+.app{position:relative;max-width:480px;min-height:calc(100dvh - 14px);margin:0 auto;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.flash{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:4}
 
-.result{display:flex;flex-direction:column;gap:8px;background:var(--mat);border:1px solid var(--mat-edge);border-radius:10px;padding:12px 14px}
-.verdict{font-weight:700;font-size:17px;margin:0}
+header{display:flex;align-items:center;gap:10px;padding:6px 8px 2px 16px}
+h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
+.stat{font-size:11px;color:var(--muted);display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.stat b{font:600 15px var(--num);color:var(--text)}
+.iconbtn{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border:0;background:none;color:var(--muted);border-radius:50%;cursor:pointer}
+.iconbtn:hover{color:var(--text)}
+.iconbtn svg{width:22px;height:22px}
+
+.body{padding:2px 16px 14px;display:flex;flex-direction:column;gap:8px}
+.board{background:var(--mat);border:1px solid var(--edge);border-radius:var(--r);padding:8px 12px;display:flex;flex-direction:column;gap:4px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;align-items:start}
+.cell{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.cell .lab{font-size:12px;color:var(--muted);min-height:18px;white-space:nowrap}
+.cell.atk .lab{color:var(--atk);font-weight:700}
+.circle{width:66px;height:66px;border-radius:50%;border:1.5px solid var(--edge);display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--num);letter-spacing:-.02em}
+.cell.atk .circle{border:3px solid var(--atk);background:var(--mat);color:var(--atk)}
+.tags{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:2px}
+.tags span{padding:1px 6px;border:1px solid var(--atk);border-radius:var(--r);font-size:11px;font-weight:700;line-height:1.4;color:var(--atk);white-space:nowrap}
+.arrow{font-size:10px;line-height:1;color:var(--atk)}
+.guard{position:relative;min-height:44px;border:1.5px dashed var(--muted);border-radius:var(--r);background:var(--mat);padding:4px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.guard.ok{border:3px solid var(--ok)} .guard.ng{border:3px solid var(--atk)}
+.guard .gl{font-size:12px;color:var(--muted)}
+.guard .gv{font:700 26px/1 var(--num);letter-spacing:-.02em;color:var(--sh)}
+.side{line-height:1.2}
+.side small{display:block;font-size:11px;font-weight:700}
+.side b{display:block;font:700 22px/1.1 var(--num);letter-spacing:-.02em}
+.side span{display:block;font-size:11px;color:var(--muted)}
+.side.dmg{justify-self:end;text-align:right;color:var(--own)}
+.side.minus{justify-self:start;color:var(--atk)}
+.own{display:flex;flex-direction:column;align-items:center;gap:2px}
+.own .circle{border:3px solid var(--own);background:var(--mat);color:var(--own)}
+.own .lab{font-size:12px;color:var(--muted);white-space:nowrap}
+
+.ask{margin:0;font-size:16px;font-weight:700;line-height:1.35;white-space:nowrap}
+.ask em{font-style:normal;background:var(--shbg);color:var(--sh);padding:0 6px;border-radius:4px}
+.ask span{margin-left:3px}
+.rule{margin:1px 0 0;font-size:12px;line-height:1.3;color:var(--muted)}
+
+.gauge{display:flex;gap:6px;align-items:flex-start}
+.zero{position:relative;flex:none;width:36px;height:44px;padding:0;border:1.5px solid var(--edge);border-radius:2px;background:none;color:var(--muted);font:600 14px/1 var(--num);cursor:pointer}
+.zero[aria-pressed="true"]{border:2px solid var(--sh);color:var(--sh)}
+.segs-wrap{flex:1;min-width:0}
+.segs,.ticks{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.seg{height:44px;padding:0;border:0;border-radius:2px;background:var(--edge);cursor:pointer}
+.seg.on{background:var(--sh);box-shadow:0 0 10px color-mix(in oklch,var(--sh) 50%,transparent)}
+.ticks{margin-top:3px;font:500 11px/1 var(--num);color:var(--muted);text-align:right;white-space:nowrap}
+.acts{display:flex;gap:10px}
+.step{flex:none;width:64px;height:50px;border:1px solid var(--edge);border-radius:var(--r);background:var(--mat);font:600 16px var(--num);cursor:pointer}
+.main{flex:1;height:50px;border:0;border-radius:var(--r);background:var(--text);color:var(--bg);font-size:16px;font-weight:700;cursor:pointer}
+
+.result{background:var(--mat);border:1px solid var(--edge);border-radius:var(--r);padding:8px 14px;display:flex;flex-direction:column;gap:3px}
+.result[hidden]{display:none}
+.verdict{margin:0;font-size:18px;font-weight:700}
 .verdict.ok{color:var(--ok)} .verdict.ng{color:var(--atk)}
-.why{margin:0;font-size:14px}
-.calc{margin:0;font-family:var(--num);font-weight:600;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
-.calc .o{color:var(--own)} .calc .s{color:var(--shield)}
-table{border-collapse:collapse;width:100%;font-size:14px}
-td{padding:3px 0;border-top:1px solid var(--mat-edge)}
-td.n{font-family:var(--num);font-weight:600;font-size:20px;line-height:1.2;color:var(--atk);text-align:right;padding-right:14px;width:5em;font-variant-numeric:tabular-nums}
-td.r{text-align:right;font-weight:700}
-td.r.stop{color:var(--ok)} td.r.hit{color:var(--atk)}
-.nextq{background:var(--text);color:var(--bg);border:0;border-radius:8px;padding:13px;font-weight:700;font-size:16px;cursor:pointer}
+.why{margin:0;font-size:13px}
+.logic{margin:0;font-size:13px;color:var(--muted)}
+.calc{margin:2px 0;font:600 20px/1.2 var(--num);letter-spacing:-.02em}
+.calc .o{color:var(--own)} .calc .s{color:var(--sh)}
+.rrow{display:flex;align-items:baseline;gap:8px;padding:3px 0;border-top:1px solid var(--edge);font-size:13px}
+.rrow .l{flex:1}
+.rrow .a{font:600 16px var(--num);color:var(--atk)}
+.rrow .c{font:500 13px var(--num);color:var(--muted)}
+.rrow b{width:4.5em;text-align:right}
+.rrow .hit{color:var(--atk)} .rrow .stop{color:var(--ok)}
 
-.range{border-top:1px solid var(--mat-edge);padding-top:14px;margin-top:8px;display:flex;flex-direction:column;gap:12px}
-.range h2{font-size:13px;font-weight:500;margin:0 0 5px;color:var(--muted)}
-.opts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.opt{background:var(--mat);border:1px solid var(--mat-edge);border-radius:6px;padding:5px 10px;font-size:14px;cursor:pointer}
-.opt[aria-pressed="true"]{border-color:var(--own);box-shadow:inset 0 0 0 1px var(--own);color:var(--own);font-weight:700}
-.code{justify-self:start;align-self:end;background:none;border:0;padding:4px 0;font-size:11px;line-height:1.2;color:var(--muted);cursor:pointer;text-align:left}
-.code b{display:block;font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:.05em;color:var(--text)}
-.codemsg{font-size:12px;color:var(--atk)}
-#codeInput{font:inherit;font-size:16px;width:7em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text);text-transform:uppercase}
-.skins{display:flex;gap:10px;align-items:center}
-.skin{width:32px;height:32px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--mark);background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%)}
-.skin[aria-pressed="true"]{outline:2px solid var(--text);outline-offset:3px}
-#customPower{font:inherit;font-size:16px;width:6em;padding:3px 8px;border:1px solid var(--mat-edge);border-radius:6px;background:var(--mat);color:var(--text)}
-.reset{background:none;border:0;padding:4px 0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;align-self:flex-start}
-@media (max-width:400px){.circle{width:74px;height:74px;font-size:26px}}
+/* settings sheet */
+.sheet{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;justify-content:flex-end}
+.sheet[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);border:0;padding:0;cursor:default}
+.panel{position:relative;background:var(--mat);border-top:1px solid var(--edge);border-radius:16px 16px 0 0;max-height:90%;overflow:auto;display:flex;flex-direction:column}
+.phead{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 6px 18px;background:var(--mat);border-bottom:1px solid var(--edge)}
+.phead h2{margin:0;font-size:16px;font-weight:700}
+.group{padding:14px 18px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--edge)}
+.group:last-child{border-bottom:0;padding-bottom:22px}
+.gtitle{margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:7px}
+.flabel{font-size:13px;font-weight:700}
+.flabel small{font-weight:400;color:var(--muted);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{min-height:40px;padding:0 13px;border:1px solid var(--edge);border-radius:20px;background:var(--bg);font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{border-color:var(--own);box-shadow:inset 0 0 0 1px var(--own);background:color-mix(in oklch,var(--own) 16%,var(--bg))}
+.inp{height:40px;padding:0 12px;border:1px solid var(--edge);border-radius:20px;background:var(--bg);color:var(--text);font:600 16px var(--num)}
+.skins{display:flex;gap:4px;margin-left:-8px}
+.skin{width:48px;height:48px;padding:0;border:0;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.skin .dot{position:relative;width:30px;height:30px;border-radius:50%;border:4px solid transparent;background:linear-gradient(var(--base),var(--base)) padding-box,var(--ball) border-box}
+.skin[aria-pressed="true"] .dot::after{content:"";position:absolute;inset:-9px;border:2px solid var(--text);border-radius:50%}
+.weak{display:flex;flex-direction:column}
+.weak div{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-top:1px solid var(--edge);font-size:14px}
+.weak div:first-child{border-top:0}
+.weak span:first-child{flex:1}
+.weak .m{font:600 15px var(--num);color:var(--atk)}
+.weak .t{font:500 14px var(--num);color:var(--muted)}
+.empty{font-size:13px;color:var(--muted);margin:0}
+.codebox{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.code{min-height:40px;padding:0 14px;border:1px solid var(--edge);border-radius:20px;background:var(--bg);cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.code b{font:600 18px var(--num);letter-spacing:.05em;color:var(--text)}
+.codemsg{font-size:12px;color:var(--atk);min-height:1em}
+.textbtn{align-self:flex-start;min-height:40px;border:0;background:none;padding:0;font-size:13px;color:var(--atk);text-decoration:underline;cursor:pointer}
+
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+@media (prefers-reduced-motion:reduce){.seg.on{box-shadow:none}}
 </style>
 </head>
 <body>
-<main>
+<div class="app" id="app">
+  <div class="flash" id="flash"></div>
   <header>
-    <h1>ガード値ドリル</h1>
-    <div class="score">正解<b id="stScore">0/0</b>　連続<b id="stStreak">0</b></div>
+    <h1>貫通ドリル</h1>
+    <div class="stat">正解<b id="stScore">0/0</b></div>
+    <div class="stat">連続<b id="stStreak">0</b></div>
+    <div class="stat" style="min-width:42px;justify-content:flex-end"><b id="timer">0.0</b>秒</div>
+    <button class="iconbtn" id="openSheet" type="button" aria-label="設定" title="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
   </header>
 
-  <section class="mat" id="mat" aria-live="polite">
-    <svg aria-hidden="true"><defs><marker id="head" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z"/></marker></defs><line id="arrow" marker-end="url(#head)"/></svg>
-    <div class="row" id="oppRow">
-      <div class="unit"><div class="circle" id="c0"></div><div class="cap" id="cap0"></div></div>
-      <div class="unit"><div class="circle" id="c1"></div><div class="cap" id="cap1"></div></div>
-      <div class="unit"><div class="circle" id="c2"></div><div class="cap" id="cap2"></div></div>
-    </div>
-    <div class="guard" id="guard">
-      <span class="glabel">ガード</span>
-      <div class="pile" id="pile"></div>
-      <span class="total" id="total">0</span>
-    </div>
-    <div class="row">
-      <button class="code" type="button" id="codeBtn" title="問題コードをコピー"><span id="codeLab">問題コード</span><b id="codeVal"></b></button>
-      <div class="unit"><div class="circle own" id="ownC"></div><div class="cap">あなたのヴァンガード</div></div>
-      <div class="dmg" id="dmg"></div>
-    </div>
-  </section>
+  <div class="body">
+    <section class="board" aria-live="polite">
+      <div class="row3" id="opp"></div>
+      <div class="guard" id="guard"><span class="gl">ガード値</span><span class="gv" id="gv">0</span></div>
+      <div class="row3">
+        <div class="side dmg" id="dmg"></div>
+        <div class="own"><div class="circle" id="ownC"></div><div class="lab">あなたのヴァンガード</div></div>
+        <div class="side minus" id="minus"></div>
+      </div>
+    </section>
 
-  <div>
-    <p class="ask" id="ask"></p>
-    <p class="note">最小の値で答える。同値はヒット。トリガーは1枚 +10000。</p>
+    <div>
+      <p class="ask" id="ask"></p>
+      <p class="rule" id="rule"></p>
+    </div>
+
+    <div class="gauge">
+      <button class="zero" id="zero" type="button" aria-label="ガード値 0">0</button>
+      <div class="segs-wrap">
+        <div class="segs" id="segs"></div>
+        <div class="ticks" id="ticks"></div>
+      </div>
+    </div>
+    <div class="acts">
+      <button class="step" id="dec" type="button" aria-label="5000 減らす">−5000</button>
+      <button class="main" id="mainBtn" type="button">これでガード</button>
+      <button class="step" id="inc" type="button" aria-label="5000 増やす">+5000</button>
+    </div>
+
+    <section class="result" id="result" hidden>
+      <p class="verdict" id="verdict"></p>
+      <p class="why" id="why"></p>
+      <p class="logic" id="logic"></p>
+      <p class="calc" id="calc"></p>
+      <div id="rows"></div>
+    </section>
   </div>
 
-  <div class="hand" id="hand">
-    <button class="card" type="button" data-add="5000"><small>シールド</small><b>5000</b></button>
-    <button class="card" type="button" data-add="10000"><small>シールド</small><b>10000</b></button>
-    <button class="card" type="button" data-add="15000"><small>シールド</small><b>15000</b></button>
-    <button class="act" type="button" id="undoBtn">1枚もどす</button>
-    <button class="act go" type="button" id="goBtn">これでガード</button>
+  <div class="sheet" id="sheet" hidden>
+    <button class="scrim" id="scrim" type="button" aria-label="設定を閉じる" tabindex="-1"></button>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="phead">
+        <h2 id="sheetTitle">設定</h2>
+        <button class="iconbtn" id="closeSheet" type="button" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <div class="group">
+        <p class="gtitle">表示</p>
+        <div class="field">
+          <span class="flabel">テーマ</span>
+          <div class="skins" id="skins">
+            <button class="skin" type="button" data-skin="div" aria-label="ディヴァインズ" title="ディヴァインズ"><span class="dot" data-skin="div"></span></button>
+            <button class="skin" type="button" data-skin="veil" aria-label="ヴェールリフト" title="ヴェールリフト"><span class="dot" data-skin="veil"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="gtitle">出題</p>
+        <div class="field">
+          <span class="flabel">自分のヴァンガード<small>複数選ぶとランダム</small></span>
+          <div class="chips" id="vgOpts">
+            <button class="chip" type="button" data-vg="10000">G2 10000</button>
+            <button class="chip" type="button" data-vg="13000">G3 13000</button>
+            <button class="chip" type="button" data-vg="18000">G3 13000+5000</button>
+            <button class="chip" type="button" data-vg="custom">その他</button>
+            <input class="inp" id="custom" type="number" min="1000" step="1000" aria-label="その他のパワー" style="width:6.5em">
+          </div>
+        </div>
+        <div class="field">
+          <span class="flabel">相手のアタック<small>複数選ぶとランダム</small></span>
+          <div class="chips" id="typeOpts"></div>
+        </div>
+        <div class="field">
+          <span class="flabel">特殊なアタック<small>ときどき出る</small></span>
+          <div class="chips" id="specOpts">
+            <button class="chip" type="button" data-spec="leg">D双闘（シングル/ツイン）</button>
+            <button class="chip" type="button" data-spec="plus">トリガー効果+5000</button>
+            <button class="chip" type="button" data-spec="minus">自分のVGパワーマイナス</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="flabel">ダメージトリガー<small>自分に +10000</small></span>
+          <div class="chips" id="dmgOpts">
+            <button class="chip" type="button" data-dmg="0">なし</button>
+            <button class="chip" type="button" data-dmg="1">0〜1枚</button>
+            <button class="chip" type="button" data-dmg="2">0〜2枚</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="gtitle">問題コード</p>
+        <div class="codebox">
+          <button class="code" id="copyCode" type="button"><b id="codeVal"></b><span id="copyLab">コピー</span></button>
+          <input class="inp" id="codeIn" type="text" maxlength="6" placeholder="例 N8ZU" aria-label="問題コード" autocomplete="off" spellcheck="false" style="width:7em;text-transform:uppercase">
+          <button class="chip" id="loadCode" type="button">出題</button>
+        </div>
+        <div class="codemsg" id="codeMsg" role="status"></div>
+      </div>
+
+      <div class="group">
+        <p class="gtitle">記録</p>
+        <div class="field">
+          <span class="flabel">苦手パターン</span>
+          <div class="weak" id="weak"></div>
+        </div>
+        <button class="textbtn" id="reset" type="button">成績を消す</button>
+      </div>
+    </div>
   </div>
-
-  <section class="result" id="result" hidden>
-    <p class="verdict" id="verdict"></p>
-    <p class="why" id="why"></p>
-    <p class="calc" id="calc"></p>
-    <table id="rows"></table>
-    <button class="nextq" id="nextBtn" type="button">次の問題</button>
-  </section>
-
-  <section class="range">
-    <div>
-      <h2>テーマ</h2>
-      <div class="skins" id="skinOpts">
-        <button class="skin" type="button" data-skin="auto" style="--a:#ffffff;--b:#191e2c" title="端末に合わせる" aria-label="端末に合わせる"></button>
-        <button class="skin" type="button" data-skin="light" style="--a:#ffffff;--b:#1d5cbb" title="ライト" aria-label="ライト"></button>
-        <button class="skin" type="button" data-skin="dark" style="--a:#191e2c;--b:#6fa9ff" title="ダーク" aria-label="ダーク"></button>
-        <button class="skin" type="button" data-skin="mat" style="--a:#17253f;--b:#ffd54a" title="プレイマット" aria-label="プレイマット"></button>
-        <button class="skin" type="button" data-skin="paper" style="--a:#fbfbf7;--b:#d3262b" title="紙" aria-label="紙"></button>
-      </div>
-    </div>
-    <div>
-      <h2>自分のヴァンガード（複数選ぶとランダム）</h2>
-      <div class="opts" id="vgOpts">
-        <button class="opt" type="button" data-vg="10000">G2 10000</button>
-        <button class="opt" type="button" data-vg="13000">G3 13000</button>
-        <button class="opt" type="button" data-vg="18000">G3 13000+5000</button>
-        <button class="opt" type="button" data-vg="custom">その他</button>
-        <input id="customPower" type="number" min="1000" step="1000" value="12000" aria-label="その他のパワー">
-      </div>
-    </div>
-    <div>
-      <h2>相手のアタック（複数選ぶとランダム）</h2>
-      <div class="opts" id="typeOpts">
-        <button class="opt" type="button" data-type="rear">リアガード</button>
-        <button class="opt" type="button" data-type="twin">ツインドライブ</button>
-        <button class="opt" type="button" data-type="triple">トリプルドライブ</button>
-        <button class="opt" type="button" data-type="quad">クアドラプルドライブ</button>
-      </div>
-    </div>
-    <div>
-      <h2>ダメージトリガー（自分に +10000）</h2>
-      <div class="opts" id="dmgOpts">
-        <button class="opt" type="button" data-dmg="0">なし</button>
-        <button class="opt" type="button" data-dmg="1">0〜1枚</button>
-        <button class="opt" type="button" data-dmg="2">0〜2枚</button>
-      </div>
-    </div>
-    <div>
-      <h2>問題コードで出題</h2>
-      <form class="opts" id="codeForm">
-        <input id="codeInput" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="例 N8ZU" aria-label="問題コード">
-        <button class="opt" type="submit">出題</button>
-        <span class="codemsg" id="codeMsg" role="status"></span>
-      </form>
-    </div>
-    <button class="reset" id="resetBtn" type="button">成績を消す</button>
-  </section>
-</main>
+</div>
 
 <script>
 (function(){
-  var TRIG = 10000, STEP = 5000, MAX = 75000, KEY = "guard-drill-v1";
-  var DRV = { rear: 0, twin: 2, triple: 3, quad: 4 };
-  var TYPES = ["rear", "twin", "triple", "quad"];
-  var DRV_NAME = { twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
-  var cfg = { vgs: { "13000": true }, custom: 12000, types: { rear: true, twin: true, triple: false, quad: false }, dmg: 1 };
-  var stats = { correct: 0, total: 0, streak: 0 };
-  var q = null, stack = [], answered = false;
+  var TRIG = 10000, STEP = 5000, MAX = 75000, KEY = "kantsu-drill-v2";
+  var DRV = { rear: 0, single: 1, twin: 2, triple: 3, quad: 4 };
+  var TYPES = ["rear", "single", "twin", "triple", "quad"];
+  var CT = ["rear", "twin", "triple", "quad"];
+  var LEG = { single: true, twin: true };
+  var NAME = { rear: "リアガード", single: "シングルドライブ", twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
 
+  var store = { cfg: { vgs: { "13000": true }, custom: 12000, types: { rear: true, single: false, twin: true, triple: false, quad: false }, dmg: 1, leg: false, plus: false, minus: false, skin: "veil" }, weak: {} };
   try {
-    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (saved && saved.types) {
-      cfg = saved;
-      if (!cfg.vgs) { cfg.vgs = {}; cfg.vgs[saved.vg || "13000"] = true; }
-    }
+    var s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {} };
   } catch (e) {}
-  function save(){ try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
+  var cfg = store.cfg;
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  var stats = { c: 0, n: 0, streak: 0 };
+  var q = null, v = 0, answered = false, ok = false, t0 = null, ms = 0, started = false;
 
   var $ = function(id){ return document.getElementById(id); };
-  function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
   function el(tag, text, cls){ var e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+  function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+  function sp(s){ return String(s).replace(/(?<=[^\s\d+\-−＋])(\d)/g, " $1").replace(/(\d)(?=[^\s\d,.])/g, "$1 "); }
+
   function vgPower(){
     var on = Object.keys(cfg.vgs).filter(function(k){ return cfg.vgs[k]; });
-    var pick = on.length ? on[ri(0, on.length - 1)] : "13000";
-    if (pick === "custom") { var v = Math.round(Number(cfg.custom) / 1000) * 1000; return v > 0 && v <= 127000 ? v : 12000; }
-    return Number(pick);
+    var p = on.length ? on[ri(0, on.length - 1)] : "13000";
+    if (p === "custom") { var x = Math.round(Number(cfg.custom) / 1000) * 1000; return x > 0 && x <= 127000 ? x : 12000; }
+    return Number(p);
   }
-  function rndPower(lo, hi){
-    var v;
-    do { v = ri(lo, hi); } while ([0, 3, 5, 8].indexOf(v % 10) < 0 && Math.random() < 0.85);
-    return v * 1000;
+  function rndPower(lo, hi){ var x; do { x = ri(lo, hi); } while ([0, 3, 5, 8].indexOf(x % 10) < 0 && Math.random() < 0.85); return x * 1000; }
+  function pen(atk, total, drives, trig){ for (var t = 0; t <= drives; t++) if (atk + t * trig >= total) return t; return drives + 1; }
+  function minShield(need, def){ return need >= def ? Math.floor((need - def) / STEP) * STEP + STEP : 0; }
+  function build(type, atk, base, dt, k, pos, leg, plus, minus){
+    leg = !!leg && !!LEG[type]; plus = !!plus && !leg && DRV[type] > 0; minus = minus || 0;
+    var def = Math.max(0, base + dt * TRIG - minus), trig = (leg ? 2 : 1) * (TRIG + (plus ? 5000 : 0));
+    var need = leg && k <= DRV[type] ? atk + k * trig - TRIG : atk + (k - 1) * trig;
+    var o = { type: type, drives: DRV[type], atk: atk, dt: dt, base: base, def: def, k: k, leg: leg, plus: plus, minus: minus, trig: trig, need: need, s: minShield(need, def), pos: pos };
+    o.code = encode(o); return o;
   }
-  function pen(atk, total, drives){
-    for (var t = 0; t <= drives; t++) if (atk + t * TRIG >= total) return t;
-    return drives + 1;
-  }
-  function minShield(atk, def, k){
-    var need = atk + (k - 1) * TRIG;
-    return need >= def ? Math.floor((need - def) / STEP) * STEP + STEP : 0;
-  }
-  function build(type, atk, base, dt, k, pos){
-    var def = base + dt * TRIG;
-    var q = { type: type, drives: DRV[type], atk: atk, dt: dt, base: base, def: def, k: k,
-              s: minShield(atk, def, k), pos: pos };
-    q.code = encode(q);
-    return q;
-  }
-  function encode(q){
-    var n = q.atk / 1000;
-    n = n * 128 + q.base / 1000;
-    n = n * 4 + q.dt;
-    n = n * 8 + (q.k - 1);
-    n = n * 4 + TYPES.indexOf(q.type);
-    n = n * 2 + (q.pos === 2 ? 1 : 0);
+  function encode(o){
+    var n = (o.leg ? 1 : 0) + (o.plus ? 2 : 0) + (o.type === "single" ? 4 : 0) + o.minus / 5000 * 8;
+    n = n * 128 + o.atk / 1000;
+    n = n * 128 + o.base / 1000; n = n * 4 + o.dt; n = n * 8 + (o.k - 1);
+    n = n * 4 + (o.type === "single" ? 0 : CT.indexOf(o.type)); n = n * 2 + (o.pos === 2 ? 1 : 0);
     return n.toString(36).toUpperCase();
   }
   function decode(str){
     str = String(str).replace(/[^0-9a-z]/gi, "").toUpperCase().replace(/^0+/, "");
     if (!str || str.length > 6) return null;
-    var n = parseInt(str, 36);
-    if (!(n > 0)) return null;
+    var n = parseInt(str, 36); if (!(n > 0)) return null;
     var side = n % 2; n = Math.floor(n / 2);
-    var type = TYPES[n % 4]; n = Math.floor(n / 4);
+    var ti = n % 4; n = Math.floor(n / 4);
     var k = n % 8 + 1; n = Math.floor(n / 8);
     var dt = n % 4; n = Math.floor(n / 4);
     var base = (n % 128) * 1000; n = Math.floor(n / 128);
-    var atk = n * 1000;
-    if (atk < 1000 || atk > 127000 || base < 1000 || k > DRV[type] + 1) return null;
-    var q = build(type, atk, base, dt, k, type === "rear" ? (side ? 2 : 0) : 1);
-    return q.code === str ? q : null;
+    var atk = (n % 128) * 1000, h = Math.floor(n / 128);
+    if (h > 31) return null;
+    var type = h & 4 ? "single" : CT[ti];
+    if (atk < 1000 || base < 1000 || k > DRV[type] + 1) return null;
+    var o = build(type, atk, base, dt, k, type === "rear" ? (side ? 2 : 0) : 1, h & 1, h & 2, (h >> 3) * 5000);
+    return o.code === str ? o : null;
   }
-  function makeQ(type, atk, dt, k){
-    return build(type, atk, vgPower(), dt, k, type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1);
-  }
+  function makeQ(type, atk, dt, k, leg, plus, minus){ return build(type, atk, vgPower(), dt, k, type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1, leg, plus, minus); }
   function generate(){
-    var pool = Object.keys(DRV).filter(function(t){ return cfg.types[t]; });
-    if (!pool.length) pool = ["rear"];
+    var pool = TYPES.filter(function(t){ return cfg.types[t]; }); if (!pool.length) pool = ["rear"];
     for (var i = 0; i < 500; i++) {
-      var type = pool[ri(0, pool.length - 1)];
-      var drives = DRV[type];
+      var type = pool[ri(0, pool.length - 1)], drives = DRV[type];
       var atk = type === "rear" ? rndPower(8, 58) : rndPower(13, 63);
       var k = drives === 0 ? 1 : (Math.random() < 0.2 ? drives + 1 : ri(1, drives));
-      var c = makeQ(type, atk, ri(0, cfg.dmg), k);
+      var leg = !!cfg.leg && !!LEG[type] && Math.random() < 0.5, plus = !leg && !!cfg.plus && drives > 0 && Math.random() < 0.4;
+      var minus = cfg.minus && Math.random() < 0.4 ? pick([5000, 5000, 5000, 10000, 10000, 15000]) : 0;
+      var c = makeQ(type, atk, ri(0, cfg.dmg), k, leg, plus, minus);
       if (c.s > MAX) continue;
-      if (pen(c.atk, c.def + c.s, c.drives) !== c.k) continue;
+      if (pen(c.atk, c.def + c.s, c.drives, c.trig) !== c.k) continue;
       if (c.s === 0 && Math.random() < 0.7) continue;
       return c;
     }
     return makeQ("rear", 23000, 0, 1);
   }
-  function penLabel(p, drives){
+  function penLabel(p, drives, leg){
     if (drives === 0) return p === 0 ? "ヒットする" : "止まる";
-    if (p === 0) return "トリガーなしでヒットする";
-    if (p > drives) return drives + "枚引かれても通らない";
-    return p + "枚貫通";
+    if (p === 0) return "トリガーなしでヒット";
+    if (p > drives) return drives + "枚でも通らない";
+    return (leg ? "前" : "") + p + "枚貫通";
+  }
+  function goalText(o, short){
+    if (o.drives === 0) return "止める";
+    if (o.k > o.drives) return o.drives + "枚でも通さない";
+    return (o.leg ? "前" : "") + o.k + "枚貫通" + (o.leg && !short && 2 * o.k <= o.drives ? "（通常" + 2 * o.k + "枚）" : "");
   }
 
-  function drawArrow(){
-    if (!q) return;
-    var m = $("mat").getBoundingClientRect();
-    var a = $("c" + q.pos).getBoundingClientRect(), b = $("ownC").getBoundingClientRect();
-    var ax = a.left + a.width / 2 - m.left, ay = a.top + a.height / 2 - m.top;
-    var bx = b.left + b.width / 2 - m.left, by = b.top + b.height / 2 - m.top;
-    var dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy) || 1;
-    var ra = a.width / 2 + 3, rb = b.width / 2 + 8;
-    var ln = $("arrow");
-    ln.setAttribute("x1", ax + dx / len * ra); ln.setAttribute("y1", ay + dy / len * ra);
-    ln.setAttribute("x2", bx - dx / len * rb); ln.setAttribute("y2", by - dy / len * rb);
-  }
-  function showStack(){
-    var sum = stack.reduce(function(a, b){ return a + b; }, 0);
-    var pile = $("pile"); pile.textContent = "";
-    stack.forEach(function(v){ pile.appendChild(el("span", v)); });
-    $("total").textContent = sum;
-    return sum;
+  /* ---------- render ---------- */
+  var segs = [], ticks = $("ticks");
+  for (var i = 1; i <= 10; i++) (function(x){
+    var b = el("button", null, "seg"); b.type = "button"; b.setAttribute("aria-label", "ガード値 " + x);
+    b.addEventListener("click", function(){ setV(x); });
+    $("segs").appendChild(b); segs.push(b);
+    ticks.appendChild(el("span", x % 10000 === 0 ? x : ""));
+  })(i * STEP);
+  TYPES.forEach(function(t){ var b = el("button", NAME[t], "chip"); b.type = "button"; b.dataset.type = t; $("typeOpts").appendChild(b); });
+
+  function setV(x){ if (answered) return; v = Math.max(0, Math.min(MAX, x)); showV(); }
+  function showV(){
+    $("gv").textContent = v;
+    segs.forEach(function(b, i){ b.classList.toggle("on", (i + 1) * STEP <= v); });
+    $("zero").setAttribute("aria-pressed", String(v === 0));
   }
   function render(){
-    answered = false; stack = [];
+    answered = false; ok = false; v = 0; ms = 0; t0 = started ? Date.now() : null;
+    var tags = [q.leg && "D双闘", q.plus && "トリガー+5000"].filter(Boolean);
+    var opp = $("opp"); opp.textContent = "";
     for (var i = 0; i < 3; i++) {
-      var c = $("c" + i), cap = $("cap" + i);
-      c.className = "circle"; c.textContent = ""; cap.className = "cap"; cap.textContent = "";
+      var c = el("div", null, "cell" + (i === q.pos ? " atk" : ""));
       if (i === q.pos) {
-        c.className = "circle atk"; c.textContent = q.atk; cap.className = "cap atk";
-        cap.textContent = q.type === "rear" ? "リアガード" : DRV_NAME[q.type];
-      } else if (i === 1) cap.textContent = "ヴァンガード";
+        c.appendChild(el("div", NAME[q.type], "lab"));
+        c.appendChild(el("div", q.atk, "circle"));
+        if (tags.length) { var tg = el("div", null, "tags"); tags.forEach(function(t){ tg.appendChild(el("span", t)); }); c.appendChild(tg); }
+        c.appendChild(el("div", "▼", "arrow"));
+      } else {
+        c.appendChild(el("div", i === 1 ? "ヴァンガード" : "", "lab"));
+        c.appendChild(el("div", null, "circle"));
+      }
+      opp.appendChild(c);
     }
     $("ownC").textContent = q.base;
-    var dmg = $("dmg"); dmg.textContent = "";
-    if (q.dt) {
-      dmg.appendChild(el("small", "ダメージトリガー"));
-      dmg.appendChild(el("b", "+" + q.dt * TRIG));
-      if (q.dt > 1) dmg.appendChild(el("span", q.dt + "枚ぶん"));
-    }
+    var d = $("dmg"); d.textContent = "";
+    if (q.dt) { d.appendChild(el("small", "ダメージトリガー")); d.appendChild(el("b", "+" + q.dt * TRIG)); }
+    var m = $("minus"); m.textContent = "";
+    if (q.minus) { m.appendChild(el("small", "相手の効果")); m.appendChild(el("b", "−" + q.minus)); m.appendChild(el("span", "パワー")); }
     var ask = $("ask"); ask.textContent = "";
-    var goal = q.drives === 0 ? "止める" : q.k > q.drives ? q.drives + "枚引かれても通さない" : q.k + "枚貫通にする";
-    ask.appendChild(el("em", goal)); ask.appendChild(document.createTextNode("には、ガード値いくつ？"));
+    ask.appendChild(el("em", sp(goalText(q))));
+    ask.appendChild(el("span", q.drives === 0 || q.k > q.drives ? "ためのガード値は？" : "にするガード値は？"));
+    $("rule").textContent = sp("最小値で回答・同値はヒット・" + (q.drives === 0 ? "トリガー +" + TRIG : q.leg ? "前トリガー +" + q.trig + "／通常 +" + TRIG : "トリガー +" + q.trig + (q.plus ? "（効果+5000込み）" : "")));
     $("guard").className = "guard";
-    $("codeVal").textContent = q.code; $("codeLab").textContent = "問題コード";
-    showStack();
-    $("hand").hidden = false; $("result").hidden = true;
-    drawArrow();
+    $("result").hidden = true;
+    $("mainBtn").textContent = "これでガード";
+    $("codeVal").textContent = q.code; $("copyLab").textContent = "コピー";
+    showV();
   }
   function answer(){
     if (answered) return;
-    answered = true;
-    var v = showStack(), ok = v === q.s;
-    stats.total++; if (ok) { stats.correct++; stats.streak++; } else stats.streak = 0;
+    answered = true; ok = v === q.s; ms = t0 ? Date.now() - t0 : 0;
+    stats.n++; if (ok) { stats.c++; stats.streak++; } else stats.streak = 0;
+    var key = q.type + (q.leg ? "*" : "") + ":" + q.k, w = store.weak[key] || (store.weak[key] = { n: 0, miss: 0, ms: 0 });
+    w.n++; if (!ok) w.miss++; w.ms += ms; save();
     showStats();
     $("guard").className = "guard " + (ok ? "ok" : "ng");
-    var verdict = $("verdict");
-    verdict.className = "verdict " + (ok ? "ok" : "ng");
-    verdict.textContent = ok ? "正解　ガード値 " + q.s : "不正解　正解は " + q.s;
+    var vd = $("verdict"); vd.className = "verdict " + (ok ? "ok" : "ng");
+    vd.textContent = ok ? "正解　ガード値 " + q.s : "不正解　正解は " + q.s;
     var why = $("why");
     if (ok) why.hidden = true;
     else {
-      var p = pen(q.atk, q.def + v, q.drives);
-      var msg = v + " だと合計 " + (q.def + v) + "。" + penLabel(p, q.drives) + "。";
-      if (v > q.s && p === q.k) msg += (v - q.s) + " 多い。";
+      var p = pen(q.atk, q.def + v, q.drives, q.trig);
+      var msg = v + " だと合計 " + (q.def + v) + " → " + penLabel(p, q.drives, q.leg);
+      if (v > q.s && p === q.k) msg += "。" + (v - q.s) + " 出しすぎ";
       why.textContent = msg; why.hidden = false;
     }
+    var line = q.drives === 0 ? "アタック" : q.k > q.drives ? (q.leg ? "前トリガー" : "トリガー") + q.drives + "枚"
+      : q.leg ? (2 * q.k - 1 <= q.drives ? "通常トリガー" + (2 * q.k - 1) + "枚" : "前トリガー" + (q.k - 1) + "枚+通常1枚")
+      : q.k === 1 ? "トリガーなし" : "トリガー" + (q.k - 1) + "枚";
+    $("logic").textContent = "止めるラインは" + line + "の " + q.need + "。" + (q.s === 0 ? "ノーガードの " + q.def + " で足りる" : "合計がこれを超える最小値");
     var calc = $("calc"); calc.textContent = "";
     calc.appendChild(el("span", q.def, "o")); calc.appendChild(document.createTextNode(" + "));
     calc.appendChild(el("span", q.s, "s")); calc.appendChild(document.createTextNode(" = " + (q.def + q.s)));
-    var rows = $("rows"); rows.textContent = "";
-    for (var t = 0; t <= q.drives; t++) {
-      var a = q.atk + t * TRIG, hit = a >= q.def + q.s;
-      var tr = document.createElement("tr");
-      tr.appendChild(el("td", q.drives === 0 ? "相手" : "トリガー" + t + "枚"));
-      tr.appendChild(el("td", a, "n"));
-      tr.appendChild(el("td", hit ? "ヒット" : "ガード成功", "r " + (hit ? "hit" : "stop")));
-      rows.appendChild(tr);
-    }
-    $("hand").hidden = true; $("result").hidden = false;
-    $("nextBtn").focus({ preventScroll: true });
+    var combos = [];
+    if (q.leg) {
+      for (var f = 0; f <= q.drives; f++) for (var n = 0; f + n <= q.drives; n++)
+        combos.push({ a: q.atk + f * q.trig + n * TRIG, f: f, label: f + n === 0 ? "トリガーなし" : [f && "前トリガー" + f + "枚", n && "通常" + n + "枚"].filter(Boolean).join("+") });
+      combos.sort(function(x, y){ return x.a - y.a || x.f - y.f; });
+    } else for (var t = 0; t <= q.drives; t++) combos.push({ a: q.atk + t * q.trig, label: q.drives === 0 ? "アタック" : t === 0 ? "トリガーなし" : "トリガー" + t + "枚" });
+    var rt = ok ? q.def + q.s : q.def + v, rows = $("rows"); rows.textContent = "";
+    combos.forEach(function(cb, i){
+      var hit = cb.a >= rt, r = el("div", null, "rrow");
+      r.appendChild(el("span", cb.label, "l")); r.appendChild(el("span", cb.a, "a"));
+      r.appendChild(el("span", (hit ? "≥ " : "< ") + rt, "c")); r.appendChild(el("b", hit ? "ヒット" : "ガード", hit ? "hit" : "stop"));
+      rows.appendChild(r);
+      if (r.animate && !reduced()) r.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 260, delay: 140 + i * 70, fill: "backwards", easing: "ease-out" });
+    });
+    $("result").hidden = false;
+    $("mainBtn").textContent = "次の問題";
+    fx(ok);
+  }
+  function reduced(){ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  function fx(good){
+    if (reduced()) return;
+    var fl = $("flash"); fl.style.background = good ? "var(--ok)" : "var(--atk)";
+    if (fl.animate) fl.animate([{ opacity: 0 }, { opacity: .3, offset: .15 }, { opacity: 0 }], { duration: 560 });
+    var r = $("result");
+    if (r.animate) r.animate(good ? [{ transform: "scale(.94)" }, { transform: "scale(1.04)" }, { transform: "scale(1)" }]
+      : [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }], { duration: good ? 360 : 420, easing: "ease-out" });
   }
   function next(){
     if (/^#q-/i.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} }
     q = generate(); render();
   }
-  function load(str){
-    var c = decode(str);
-    if (!c) return false;
-    q = c; render();
-    return true;
-  }
-  function fromHash(){
-    var m = /^#q-([0-9a-z]{1,6})$/i.exec(location.hash);
-    return !!m && load(m[1]);
-  }
-  function showStats(){
-    $("stScore").textContent = stats.correct + "/" + stats.total;
-    $("stStreak").textContent = stats.streak;
-  }
+  function load(str){ var c = decode(str); if (!c) return false; q = c; render(); return true; }
+  function fromHash(){ var m = /^#q-([0-9a-z]{1,6})$/i.exec(location.hash); return !!m && load(m[1]); }
+  function showStats(){ $("stScore").textContent = stats.c + "/" + stats.n; $("stStreak").textContent = stats.streak; }
+  setInterval(function(){
+    var t = answered ? ms : t0 ? Date.now() - t0 : 0, txt = (t / 1000).toFixed(1);
+    if ($("timer").textContent !== txt) $("timer").textContent = txt;
+  }, 100);
+  document.addEventListener("pointerdown", function(){ if (!started) { started = true; if (!answered) t0 = Date.now(); } }, { capture: true });
+
+  /* ---------- settings ---------- */
   function each(sel, fn){ Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
-  function applySkin(){
-    var k = cfg.skin || "auto";
-    if (k === "auto") document.documentElement.removeAttribute("data-skin");
-    else document.documentElement.setAttribute("data-skin", k);
-    each("[data-skin]", function(b){ if (b !== document.documentElement) b.setAttribute("aria-pressed", String(b.dataset.skin === k)); });
-  }
   function syncOpts(){
     each("[data-vg]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.vgs[b.dataset.vg])); });
     each("[data-type]", function(b){ b.setAttribute("aria-pressed", String(!!cfg.types[b.dataset.type])); });
+    each("[data-spec]", function(b){ b.setAttribute("aria-pressed", String(!!cfg[b.dataset.spec])); });
     each("[data-dmg]", function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.dmg) === cfg.dmg)); });
-    $("customPower").value = cfg.custom;
+    each("button.skin", function(b){ b.setAttribute("aria-pressed", String(b.dataset.skin === (cfg.skin || "veil"))); });
+    $("custom").value = cfg.custom;
+  }
+  function renderWeak(){
+    var box = $("weak"); box.textContent = "";
+    var list = Object.keys(store.weak).map(function(k){ return { k: k, w: store.weak[k] }; }).filter(function(e){ return e.w.miss > 0; })
+      .sort(function(x, y){ return y.w.miss / y.w.n - x.w.miss / x.w.n || y.w.n - x.w.n; }).slice(0, 4);
+    if (!list.length) { box.appendChild(el("p", "まだ記録がありません。間違えた問題の型がここに並びます。", "empty")); return; }
+    list.forEach(function(e){
+      var parts = e.k.split(":"), leg = parts[0].slice(-1) === "*", type = parts[0].replace("*", "");
+      var row = el("div");
+      row.appendChild(el("span", NAME[type] + (leg ? "（D双闘）" : "") + "・" + goalText({ drives: DRV[type], k: Number(parts[1]), leg: leg }, true)));
+      row.appendChild(el("span", e.w.miss + "/" + e.w.n + " ミス", "m"));
+      row.appendChild(el("span", "平均 " + (e.w.ms / e.w.n / 1000).toFixed(1) + "秒", "t"));
+      box.appendChild(row);
+    });
   }
   function changed(){ save(); syncOpts(); next(); }
+  function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "veil"); }
+  function openSheet(){ renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
+  function closeSheet(){ $("sheet").hidden = true; $("openSheet").focus(); }
 
-  $("hand").addEventListener("click", function(e){
-    var b = e.target.closest("[data-add]"); if (!b || answered) return;
-    stack.push(Number(b.dataset.add)); showStack();
+  $("openSheet").addEventListener("click", openSheet);
+  $("closeSheet").addEventListener("click", closeSheet);
+  $("scrim").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+  $("skins").addEventListener("click", function(e){
+    var b = e.target.closest("button.skin"); if (!b) return;
+    var key = b.dataset.skin; if ((cfg.skin || "veil") === key) return;
+    var apply = function(){ cfg.skin = key; save(); applySkin(); syncOpts(); };
+    if (!document.startViewTransition || reduced()) return apply();
+    var r = b.querySelector(".dot").getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    var R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    var vt = document.startViewTransition(apply);
+    vt.ready.then(function(){
+      document.documentElement.animate({ clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + R + "px at " + x + "px " + y + "px)"] },
+        { duration: 520, easing: "cubic-bezier(.3,0,0,1)", pseudoElement: "::view-transition-new(root)" });
+    }).catch(function(){});
   });
-  $("undoBtn").addEventListener("click", function(){ stack.pop(); showStack(); });
-  $("goBtn").addEventListener("click", answer);
-  $("nextBtn").addEventListener("click", next);
-  $("skinOpts").addEventListener("click", function(e){
-    var b = e.target.closest("button[data-skin]"); if (!b) return;
-    cfg.skin = b.dataset.skin; save(); applySkin();
-  });
-  $("codeBtn").addEventListener("click", function(){
-    var done = function(){ $("codeLab").textContent = "コピーした"; };
-    try { navigator.clipboard.writeText(q.code).then(done, function(){}); } catch (e) {}
-  });
-  $("codeForm").addEventListener("submit", function(e){
-    e.preventDefault();
-    if (load($("codeInput").value)) {
-      $("codeMsg").textContent = ""; $("codeInput").value = "";
-      try { window.scrollTo(0, 0); } catch (err) {}
-    } else $("codeMsg").textContent = "そのコードの問題はありません";
-  });
-  window.addEventListener("hashchange", fromHash);
-  $("resetBtn").addEventListener("click", function(){ stats = { correct: 0, total: 0, streak: 0 }; showStats(); });
   $("vgOpts").addEventListener("click", function(e){
     var b = e.target.closest("[data-vg]"); if (!b) return;
-    var v = b.dataset.vg;
-    cfg.vgs[v] = !cfg.vgs[v];
-    if (!Object.keys(cfg.vgs).some(function(k){ return cfg.vgs[k]; })) cfg.vgs[v] = true;
+    var k = b.dataset.vg; cfg.vgs[k] = !cfg.vgs[k];
+    if (!Object.keys(cfg.vgs).some(function(x){ return cfg.vgs[x]; })) cfg.vgs[k] = true;
     changed();
   });
-  $("customPower").addEventListener("change", function(){
-    cfg.custom = Number(this.value) || 12000; cfg.vgs.custom = true; changed();
-  });
+  $("custom").addEventListener("change", function(){ cfg.custom = Number(this.value) || 12000; cfg.vgs.custom = true; changed(); });
   $("typeOpts").addEventListener("click", function(e){
     var b = e.target.closest("[data-type]"); if (!b) return;
-    var t = b.dataset.type;
-    cfg.types[t] = !cfg.types[t];
-    if (!Object.keys(DRV).some(function(k){ return cfg.types[k]; })) cfg.types[t] = true;
+    var t = b.dataset.type; cfg.types[t] = !cfg.types[t];
+    if (!TYPES.some(function(x){ return cfg.types[x]; })) cfg.types[t] = true;
     changed();
   });
-  $("dmgOpts").addEventListener("click", function(e){
-    var b = e.target.closest("[data-dmg]"); if (!b) return;
-    cfg.dmg = Number(b.dataset.dmg); changed();
+  $("specOpts").addEventListener("click", function(e){ var b = e.target.closest("[data-spec]"); if (!b) return; cfg[b.dataset.spec] = !cfg[b.dataset.spec]; changed(); });
+  $("dmgOpts").addEventListener("click", function(e){ var b = e.target.closest("[data-dmg]"); if (!b) return; cfg.dmg = Number(b.dataset.dmg); changed(); });
+  $("copyCode").addEventListener("click", function(){
+    try { navigator.clipboard.writeText(q.code).then(function(){ $("copyLab").textContent = "コピーした"; }, function(){}); } catch (e) {}
   });
-  window.addEventListener("resize", drawArrow);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawArrow);
-
-  function start(data){
-    if (data && data.stats) stats = data.stats;
-    applySkin(); syncOpts(); showStats();
-    if (!fromHash()) next();
+  function loadFromInput(){
+    if (load($("codeIn").value)) { $("codeIn").value = ""; $("codeMsg").textContent = ""; closeSheet(); }
+    else $("codeMsg").textContent = "そのコードの問題はありません";
   }
-  var hot = window.claude && window.claude.hot;
-  if (hot && hot.snapshot) hot.snapshot(function(){ return { stats: stats }; });
-  if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+  $("loadCode").addEventListener("click", loadFromInput);
+  $("codeIn").addEventListener("keydown", function(e){ if (e.key === "Enter") loadFromInput(); });
+  $("reset").addEventListener("click", function(){ stats = { c: 0, n: 0, streak: 0 }; store.weak = {}; save(); showStats(); renderWeak(); });
+
+  /* ---------- play ---------- */
+  $("zero").addEventListener("click", function(){ setV(0); });
+  $("dec").addEventListener("click", function(){ setV(v - STEP); });
+  $("inc").addEventListener("click", function(){ setV(v + STEP); });
+  $("mainBtn").addEventListener("click", function(){ if (answered) next(); else answer(); });
+  window.addEventListener("hashchange", fromHash);
+
+  applySkin(); syncOpts(); showStats();
+  if (!fromHash()) next();
 })();
 </script>
 </body>
