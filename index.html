@@ -419,9 +419,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       }
       opp.appendChild(c);
     }
-    $("ownC").textContent = q.base;
+    $("ownC").textContent = q.base + q.dt * TRIG;
     var d = $("dmg"); d.textContent = "";
-    if (q.dt) { d.appendChild(el("small", "ダメージトリガー")); d.appendChild(el("b", "+" + q.dt * TRIG)); }
+    if (q.dt) { d.appendChild(el("small", "ダメージトリガー")); d.appendChild(el("b", "+" + q.dt * TRIG)); d.appendChild(el("span", "加算済み")); }
     var m = $("minus"); m.textContent = "";
     if (q.minus) { m.appendChild(el("small", "相手の効果")); m.appendChild(el("b", "−" + q.minus)); m.appendChild(el("span", "パワー")); }
     var ask = $("ask"); ask.textContent = "";
