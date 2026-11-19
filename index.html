@@ -100,6 +100,8 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .seg.on{background:var(--sh);box-shadow:0 0 10px color-mix(in oklch,var(--sh) 50%,transparent)}
 .ticks{margin-top:3px;font:500 11px/1 var(--num);color:var(--muted);text-align:right;white-space:nowrap}
 .acts{display:flex;gap:10px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.steps .step{min-width:0;height:44px}
 .step{flex:none;min-width:64px;padding:0 8px;white-space:nowrap;height:50px;border:1px solid var(--edge);border-radius:var(--r);background:var(--mat);font:600 16px var(--num);cursor:pointer}
 .main{flex:1;height:50px;border:0;border-radius:var(--r);background:var(--text);color:var(--bg);font-size:16px;font-weight:700;cursor:pointer}
 
@@ -200,10 +202,14 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
         <div class="ticks" id="ticks"></div>
       </div>
     </div>
-    <div class="acts">
+    <div class="steps">
+      <button class="step" id="dec2" type="button" aria-label="10000 減らす">−10000</button>
       <button class="step" id="dec" type="button" aria-label="5000 減らす">−5000</button>
-      <button class="main" id="mainBtn" type="button">これでガード</button>
       <button class="step" id="inc" type="button" aria-label="5000 増やす">+5000</button>
+      <button class="step" id="inc2" type="button" aria-label="10000 増やす">+10000</button>
+    </div>
+    <div class="acts">
+      <button class="main" id="mainBtn" type="button">これでガード</button>
     </div>
 
     <section class="result" id="result" hidden>
@@ -589,6 +595,8 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   $("zero").addEventListener("click", function(){ setV(0); });
   $("dec").addEventListener("click", function(){ setV(v - STEP); });
   $("inc").addEventListener("click", function(){ setV(v + STEP); });
+  $("dec2").addEventListener("click", function(){ setV(v - 2 * STEP); });
+  $("inc2").addEventListener("click", function(){ setV(v + 2 * STEP); });
   $("mainBtn").addEventListener("click", function(){ if (answered) next(); else answer(); });
   window.addEventListener("hashchange", fromHash);
 
