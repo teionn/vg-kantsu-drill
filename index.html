@@ -344,12 +344,14 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   function generate(){
     var pool = TYPES.filter(function(t){ return cfg.types[t]; }); if (!pool.length) pool = ["rear"];
     for (var i = 0; i < 500; i++) {
-      var type = pool[ri(0, pool.length - 1)], drives = DRV[type];
+      var base = vgPower(), pl = base === 10000 ? pool.filter(function(t){ return t === "rear" || t === "single"; }) : pool;
+      if (!pl.length) pl = pool;
+      var type = pl[ri(0, pl.length - 1)], drives = DRV[type];
       var atk = type === "rear" ? rndPower(8, 58) : rndPower(13, 63);
       var k = drives === 0 ? 1 : (Math.random() < 0.2 ? drives + 1 : ri(1, drives));
       var leg = !!cfg.leg && !!LEG[type] && Math.random() < 0.5, plus = !leg && !!cfg.plus && drives > 0 && Math.random() < 0.4;
       var minus = cfg.minus && Math.random() < 0.4 ? pick([5000, 5000, 5000, 10000, 10000, 15000]) : 0;
-      var c = makeQ(type, atk, ri(0, cfg.dmg), k, leg, plus, minus);
+      var c = build(type, atk, base, ri(0, cfg.dmg), k, type === "rear" ? (Math.random() < 0.5 ? 0 : 2) : 1, leg, plus, minus);
       if (c.s > MAX) continue;
       if (pen(c.atk, c.def + c.s, c.drives, c.trig) !== c.k) continue;
       if (c.s === 0 && Math.random() < 0.7) continue;
