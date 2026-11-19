@@ -163,6 +163,19 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .runbar span{flex:1;color:var(--muted)}
 .runbar .textbtn{min-height:28px;align-self:center}
 .sum{margin:4px 0 0;padding-top:6px;border-top:1px solid var(--edge);font-size:14px;font-weight:700}
+#editor{z-index:6}
+#editor .panel{max-height:none;height:100%;border-radius:0;border-top:0}
+.ecard{gap:10px}
+.ehead{display:flex;align-items:center;gap:8px;font-size:14px}
+.ehead span{flex:1;font-size:12px;font-weight:700;color:var(--own)}
+.ehead .textbtn{align-self:center}
+.mini{min-width:40px;height:40px;padding:0 10px;border:1px solid var(--edge);border-radius:var(--r);background:var(--bg);font:600 15px var(--num);font-style:italic;white-space:nowrap;cursor:pointer}
+.mini:disabled,#edAdd:disabled{opacity:.35;cursor:default}
+.elab{font-size:13px;font-weight:700}
+.eans{margin:0;font-size:14px;font-weight:700;color:var(--ok)}
+.eans.bad{color:var(--atk)}
+#edAdd{align-self:flex-start}
+#edSave{flex:none}
 .sets{display:flex;flex-direction:column}
 .sets div{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 0;border-top:1px solid var(--edge);font-size:14px}
 .sets div:first-child{border-top:0}
@@ -243,16 +256,8 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       <div class="group">
         <p class="gtitle">実戦プリセット</p>
         <div class="sets" id="sets"></div>
-        <div class="field">
-          <span class="flabel">自分で作る<small>問題コードを受ける順に並べる</small></span>
-          <input class="inp jp" id="setName" type="text" maxlength="20" placeholder="名前" aria-label="プリセットの名前" autocomplete="off">
-          <input class="inp" id="setCodes" type="text" placeholder="コードを空白で区切る" aria-label="問題コードの並び" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase">
-          <div class="chips">
-            <button class="chip" id="setAdd" type="button">いまの問題を追加</button>
-            <button class="chip" id="setSave" type="button">保存</button>
-          </div>
-          <div class="codemsg" id="setMsg" role="status"></div>
-        </div>
+        <button class="chip" id="setNew" type="button" style="align-self:flex-start">＋ 新しく作る</button>
+        <div class="codemsg" id="setMsg" role="status"></div>
       </div>
 
       <div class="group">
@@ -316,6 +321,35 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
             <button class="skin" type="button" data-skin="veil" aria-label="ヴェールリフト" title="ヴェールリフト"><span class="dot" data-skin="veil"></span></button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div class="sheet" id="editor" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+      <div class="phead">
+        <h2 id="edTitle">プリセットを作る</h2>
+        <button class="iconbtn" id="edClose" type="button" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="group">
+        <div class="field">
+          <span class="flabel">名前</span>
+          <input class="inp jp" id="edName" type="text" maxlength="20" aria-label="プリセットの名前" autocomplete="off">
+        </div>
+        <div class="field">
+          <span class="flabel">自分のヴァンガード</span>
+          <div class="chips" id="edBase">
+            <button class="chip" type="button" data-b="10000">G2 10000</button>
+            <button class="chip" type="button" data-b="13000">G3 13000</button>
+            <button class="chip" type="button" data-b="18000">G3 13000+5000</button>
+            <input class="inp" id="edBaseIn" type="number" min="1000" step="1000" aria-label="自分のヴァンガードのパワー" style="width:6.5em">
+          </div>
+        </div>
+      </div>
+      <div id="edSteps"></div>
+      <div class="group">
+        <button class="chip" id="edAdd" type="button">＋ アタックを追加</button>
+        <div class="codemsg" id="edMsg" role="status"></div>
+        <button class="main" id="edSave" type="button">保存</button>
       </div>
     </div>
   </div>
@@ -625,6 +659,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       var sh = el("button", "配布リンク", "chip"); sh.type = "button";
       sh.addEventListener("click", function(){ shareSet(st); });
       row.appendChild(sh);
+      var edb = el("button", st.builtin ? "複製" : "編集", "chip"); edb.type = "button";
+      edb.addEventListener("click", function(){ if (st.builtin) openEd({ name: (st.name + " コピー").slice(0, 20), codes: st.codes }, -1); else openEd(st, store.sets.indexOf(st)); });
+      row.appendChild(edb);
       if (!st.builtin) {
         var del = el("button", "削除", "textbtn"); del.type = "button";
         del.addEventListener("click", function(){ store.sets.splice(store.sets.indexOf(st), 1); save(); renderSets(); });
@@ -634,13 +671,101 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     });
   }
   function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "div"); }
+  /* ---------- preset editor ---------- */
+  var ed = null;
+  function edDt(i){ var n = 0; for (var j = 0; j < i; j++) if (ed.steps[j].hit) n++; return Math.min(3, n); }
+  function edBuild(i){
+    var st = ed.steps[i], rears = 0;
+    for (var j = 0; j < i; j++) if (ed.steps[j].type === "rear") rears++;
+    return build(st.type, st.atk, ed.base, edDt(i), st.k, st.type === "rear" ? (rears % 2 ? 2 : 0) : 1, st.leg, st.plus, st.minus);
+  }
+  function edValid(o){ return o.s <= MAX && pen(o.atk, o.def + o.s, o.drives, o.trig) === o.k; }
+  function edFix(st){
+    var d = DRV[st.type];
+    st.atk = Math.max(1000, Math.min(127000, Math.round(st.atk / 1000) * 1000 || 1000));
+    if (st.k > d + 1) st.k = d + 1;
+    if (st.k < 1) st.k = 1;
+    if (!LEG[st.type]) st.leg = false;
+    if (st.leg || d === 0) st.plus = false;
+  }
+  function chipBtn(label, on, fn){
+    var b = el("button", label, "chip"); b.type = "button"; b.setAttribute("aria-pressed", String(!!on));
+    b.addEventListener("click", function(){ fn(); drawEd(); });
+    return b;
+  }
+  function drawEd(){
+    each("#edBase [data-b]", function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.b) === ed.base)); });
+    $("edBaseIn").value = ed.base;
+    var box = $("edSteps"); box.textContent = "";
+    ed.steps.forEach(function(st, i){
+      edFix(st);
+      var d = DRV[st.type], o = edBuild(i), card = el("div", null, "group ecard");
+      var head = el("div", null, "ehead");
+      head.appendChild(el("b", (i + 1) + "回目"));
+      head.appendChild(el("span", o.dt ? "ここまでのトリガー +" + o.dt * TRIG : ""));
+      var up = el("button", "↑", "mini"), dn = el("button", "↓", "mini"), rm = el("button", "削除", "textbtn");
+      [up, dn, rm].forEach(function(b){ b.type = "button"; });
+      up.setAttribute("aria-label", "前へ"); dn.setAttribute("aria-label", "後ろへ");
+      up.disabled = i === 0; dn.disabled = i === ed.steps.length - 1;
+      up.addEventListener("click", function(){ ed.steps.splice(i - 1, 0, ed.steps.splice(i, 1)[0]); drawEd(); });
+      dn.addEventListener("click", function(){ ed.steps.splice(i + 1, 0, ed.steps.splice(i, 1)[0]); drawEd(); });
+      rm.addEventListener("click", function(){ ed.steps.splice(i, 1); drawEd(); });
+      head.appendChild(up); head.appendChild(dn); head.appendChild(rm);
+      card.appendChild(head);
+      var types = el("div", null, "chips");
+      TYPES.forEach(function(t){ types.appendChild(chipBtn(NAME[t].replace("ドライブ", ""), st.type === t, function(){ st.type = t; })); });
+      card.appendChild(types);
+      var pw = el("div", null, "chips");
+      pw.appendChild(el("span", "パワー", "elab"));
+      var m5 = el("button", "−5000", "mini"), inp = el("input", null, "inp"), p5 = el("button", "+5000", "mini");
+      m5.type = "button"; p5.type = "button"; inp.type = "number"; inp.step = 1000; inp.min = 1000; inp.value = st.atk; inp.style.width = "6.5em";
+      inp.setAttribute("aria-label", (i + 1) + "回目のパワー");
+      m5.addEventListener("click", function(){ st.atk -= 5000; drawEd(); });
+      p5.addEventListener("click", function(){ st.atk += 5000; drawEd(); });
+      inp.addEventListener("change", function(){ st.atk = Number(inp.value) || st.atk; drawEd(); });
+      pw.appendChild(m5); pw.appendChild(inp); pw.appendChild(p5);
+      card.appendChild(pw);
+      var goals = el("div", null, "chips");
+      for (var k = 1; k <= d + 1; k++) (function(k){ goals.appendChild(chipBtn(goalText({ drives: d, k: k, leg: st.leg }, true), st.k === k, function(){ st.k = k; })); })(k);
+      card.appendChild(goals);
+      var ex = el("div", null, "chips");
+      if (LEG[st.type]) ex.appendChild(chipBtn("D双闘", st.leg, function(){ st.leg = !st.leg; }));
+      if (d > 0 && !st.leg) ex.appendChild(chipBtn("トリガー+5000", st.plus, function(){ st.plus = !st.plus; }));
+      ex.appendChild(chipBtn(st.minus ? "VGパワー −" + st.minus : "VGパワーマイナスなし", st.minus, function(){ st.minus = (st.minus + 5000) % 20000; }));
+      if (i < ed.steps.length - 1) ex.appendChild(chipBtn("この攻撃でダメージトリガーが出る", st.hit, function(){ st.hit = !st.hit; }));
+      card.appendChild(ex);
+      var good = edValid(o);
+      card.appendChild(el("p", good ? "答え　" + (o.s === 0 ? "ノーガード" : o.s) + "（自分 " + o.def + "）" : "この狙いは成立しません。パワーか狙いを変えてください", "eans" + (good ? "" : " bad")));
+      box.appendChild(card);
+    });
+    $("edAdd").disabled = ed.steps.length >= 12;
+  }
+  function openEd(src, idx){
+    ed = { idx: idx, base: 13000, steps: [] };
+    if (src) {
+      var prev = 0;
+      src.codes.forEach(function(c){
+        var o = decode(c); if (!o) return;
+        if (!ed.steps.length) ed.base = o.base;
+        else if (o.dt > prev) ed.steps[ed.steps.length - 1].hit = true;
+        prev = o.dt;
+        ed.steps.push({ type: o.type, atk: o.atk, k: o.k, leg: o.leg, plus: o.plus, minus: o.minus, hit: false });
+      });
+    }
+    if (!ed.steps.length) ed.steps.push({ type: "rear", atk: 23000, k: 1, leg: false, plus: false, minus: 0, hit: false });
+    $("edTitle").textContent = idx >= 0 ? "プリセットを編集" : "プリセットを作る";
+    $("edName").value = src ? src.name : ""; $("edMsg").textContent = "";
+    drawEd(); $("editor").hidden = false; $("edClose").focus();
+  }
+  function closeEd(){ $("editor").hidden = true; ed = null; renderSets(); }
+
   function openSheet(){ renderSets(); renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("setMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
   function closeSheet(){ $("sheet").hidden = true; $("openSheet").focus(); }
 
   $("openSheet").addEventListener("click", openSheet);
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
-  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+  document.addEventListener("keydown", function(e){ if (e.key !== "Escape") return; if (!$("editor").hidden) closeEd(); else if (!$("sheet").hidden) closeSheet(); });
   $("skins").addEventListener("click", function(e){
     var b = e.target.closest("button.skin"); if (!b) return;
     var key = b.dataset.skin; if ((cfg.skin || "div") === key) return;
@@ -690,15 +815,25 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     if (!run || !run.shared) return;
     store.sets.push(run.shared); save(); run.shared = null; this.hidden = true;
   });
-  $("setAdd").addEventListener("click", function(){ var f = $("setCodes"); f.value = (f.value.trim() + " " + q.code).trim(); });
-  $("setSave").addEventListener("click", function(){
-    var name = $("setName").value.trim(), raw = $("setCodes").value.toUpperCase().split(/[^0-9A-Z]+/).filter(Boolean);
-    var bad = raw.filter(function(c){ return !decode(c); });
-    if (!name) { $("setMsg").textContent = "名前を入れてください"; return; }
-    if (!raw.length) { $("setMsg").textContent = "問題コードを1つ以上入れてください"; return; }
-    if (bad.length) { $("setMsg").textContent = "使えないコードがあります: " + bad.join(" "); return; }
-    store.sets.push({ name: name, codes: raw.map(function(c){ return decode(c).code; }) });
-    save(); $("setName").value = ""; $("setCodes").value = ""; $("setMsg").textContent = ""; renderSets();
+  $("setNew").addEventListener("click", function(){ openEd(null, -1); });
+  $("edClose").addEventListener("click", closeEd);
+  $("edBase").addEventListener("click", function(e){ var b = e.target.closest("[data-b]"); if (!b) return; ed.base = Number(b.dataset.b); drawEd(); });
+  $("edBaseIn").addEventListener("change", function(){ var x = Math.round(Number(this.value) / 1000) * 1000; if (x >= 1000 && x <= 127000) ed.base = x; drawEd(); });
+  $("edAdd").addEventListener("click", function(){
+    var l = ed.steps[ed.steps.length - 1];
+    ed.steps.push({ type: l ? l.type : "rear", atk: l ? l.atk : 23000, k: 1, leg: false, plus: false, minus: 0, hit: false });
+    drawEd();
+    var c = $("edSteps").lastChild; if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" });
+  });
+  $("edSave").addEventListener("click", function(){
+    var name = $("edName").value.trim();
+    if (!name) { $("edMsg").textContent = "名前を入れてください"; return; }
+    if (!ed.steps.length) { $("edMsg").textContent = "アタックを1つ以上入れてください"; return; }
+    var objs = ed.steps.map(function(_, i){ return edBuild(i); });
+    if (!objs.every(edValid)) { $("edMsg").textContent = "成立しないアタックがあります"; return; }
+    var st = { name: name, codes: objs.map(function(o){ return o.code; }) };
+    if (ed.idx >= 0) store.sets[ed.idx] = st; else store.sets.push(st);
+    save(); closeEd();
   });
   $("loadCode").addEventListener("click", loadFromInput);
   $("codeIn").addEventListener("keydown", function(e){ if (e.key === "Enter") loadFromInput(); });
