@@ -73,8 +73,10 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .side small{display:block;font-size:11px;font-weight:700}
 .side b{display:block;font:700 22px/1.1 var(--num);letter-spacing:-.02em}
 .side span{display:block;font-size:11px;color:var(--muted)}
-.side.dmg{justify-self:end;text-align:right;color:var(--own)}
-.side.minus{justify-self:start;color:var(--atk)}
+.mods{justify-self:start;align-self:center;display:flex;flex-direction:column;gap:4px}
+.side:empty{display:none}
+.side.dmg{color:var(--own)}
+.side.minus{color:var(--atk)}
 .own{display:flex;flex-direction:column;align-items:center;gap:2px}
 .own .circle{border:3px solid var(--own);background:var(--mat);color:var(--own)}
 .own .lab{font-size:12px;color:var(--muted);white-space:nowrap}
@@ -167,9 +169,12 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       <div class="row3" id="opp"></div>
       <div class="guard" id="guard"><span class="gl">ガード値</span><span class="gv" id="gv">0</span></div>
       <div class="row3">
-        <div class="side dmg" id="dmg"></div>
+        <div></div>
         <div class="own"><div class="circle" id="ownC"></div><div class="lab">あなたのヴァンガード</div></div>
-        <div class="side minus" id="minus"></div>
+        <div class="mods">
+          <div class="side minus" id="minus"></div>
+          <div class="side dmg" id="dmg"></div>
+        </div>
       </div>
     </section>
 
