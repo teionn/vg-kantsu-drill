@@ -38,7 +38,6 @@
   --ok:light-dark(oklch(.47 .13 155),oklch(.8 .15 155));
 }
 *{box-sizing:border-box}
-.stat b,.circle,.guard .gv,.side b,.zero,.ticks,.step,.calc,.rrow .a,.rrow .c,.inp,.weak .m,.weak .t,.code b{font-style:italic}
 html,body{margin:0;min-height:100%}
 body{background:var(--frame);background-attachment:fixed;color:var(--text);font-family:var(--jp);font-size:15px;line-height:1.5;padding:7px;min-height:100dvh}
 button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -147,6 +146,9 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
 .codemsg{font-size:12px;color:var(--atk);min-height:1em}
 .textbtn{align-self:flex-start;min-height:40px;border:0;background:none;padding:0;font-size:13px;color:var(--atk);text-decoration:underline;cursor:pointer}
 
+.qcode{justify-self:start;align-self:end;min-height:44px;padding:2px 0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;text-align:left;font-size:11px;line-height:1.2;color:var(--muted)}
+.qcode b{font:600 17px/1.15 var(--num);letter-spacing:.05em;color:var(--text)}
+.stat b,.circle,.guard .gv,.side b,.zero,.ticks,.step,.calc,.rrow .a,.rrow .c,.inp,.weak .m,.weak .t,.qcode b{font-style:italic}
 ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){.seg.on{box-shadow:none}}
 </style>
@@ -169,7 +171,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       <div class="row3" id="opp"></div>
       <div class="guard" id="guard"><span class="gl">ガード値</span><span class="gv" id="gv">0</span></div>
       <div class="row3">
-        <div></div>
+        <button class="qcode" id="copyCode" type="button" aria-label="問題コードをコピー"><span>問題コード</span><b id="codeVal"></b><span id="copyLab">コピー</span></button>
         <div class="own"><div class="circle" id="ownC"></div><div class="lab">あなたのヴァンガード</div></div>
         <div class="mods">
           <div class="side minus" id="minus"></div>
@@ -259,9 +261,8 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       </div>
 
       <div class="group">
-        <p class="gtitle">問題コード</p>
+        <p class="gtitle">問題コードで出題</p>
         <div class="codebox">
-          <button class="code" id="copyCode" type="button"><b id="codeVal"></b><span id="copyLab">コピー</span></button>
           <input class="inp" id="codeIn" type="text" maxlength="6" placeholder="例 N8ZU" aria-label="問題コード" autocomplete="off" spellcheck="false" style="width:7em;text-transform:uppercase">
           <button class="chip" id="loadCode" type="button">出題</button>
         </div>
