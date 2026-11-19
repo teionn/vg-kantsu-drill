@@ -284,7 +284,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   var LEG = { single: true, twin: true };
   var NAME = { rear: "リアガード", single: "シングルドライブ", twin: "ツインドライブ", triple: "トリプルドライブ", quad: "クアドラプルドライブ" };
 
-  var store = { cfg: { vgs: { "13000": true }, custom: 12000, types: { rear: true, single: false, twin: true, triple: false, quad: false }, dmg: 1, leg: false, plus: false, minus: false, skin: "div" }, weak: {} };
+  var store = { cfg: { vgs: { "13000": true }, custom: 12000, types: { rear: true, single: true, twin: true, triple: true, quad: true }, dmg: 1, leg: false, plus: false, minus: false, skin: "div" }, weak: {} };
   try {
     var s = JSON.parse(localStorage.getItem(KEY) || "null");
     if (s && s.cfg && s.cfg.types && s.cfg.vgs) store = { cfg: s.cfg, weak: s.weak || {} };
@@ -506,6 +506,11 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
       box.appendChild(row);
     });
   }
+  function autoTypes(){
+    var g3 = !!cfg.vgs["13000"] || !!cfg.vgs["18000"];
+    if (g3) TYPES.forEach(function(t){ cfg.types[t] = true; });
+    else if (cfg.vgs["10000"] && !cfg.vgs.custom) TYPES.forEach(function(t){ cfg.types[t] = t === "rear" || t === "single"; });
+  }
   function changed(){ save(); syncOpts(); next(); }
   function applySkin(){ document.documentElement.setAttribute("data-skin", cfg.skin || "div"); }
   function openSheet(){ renderWeak(); syncOpts(); $("codeMsg").textContent = ""; $("sheet").hidden = false; $("closeSheet").focus(); }
@@ -532,6 +537,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     var b = e.target.closest("[data-vg]"); if (!b) return;
     var k = b.dataset.vg; cfg.vgs[k] = !cfg.vgs[k];
     if (!Object.keys(cfg.vgs).some(function(x){ return cfg.vgs[x]; })) cfg.vgs[k] = true;
+    autoTypes();
     changed();
   });
   $("custom").addEventListener("change", function(){ cfg.custom = Number(this.value) || 12000; cfg.vgs.custom = true; changed(); });
