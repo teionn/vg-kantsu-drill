@@ -385,12 +385,12 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
   function penLabel(p, drives, leg){
     if (drives === 0) return p === 0 ? "ヒットする" : "止まる";
     if (p === 0) return "トリガーなしでヒット";
-    if (p > drives) return drives + "枚でも通らない";
+    if (p > drives) return "超貫通";
     return (leg ? "前" : "") + p + "枚貫通";
   }
   function goalText(o, short){
     if (o.drives === 0) return "止める";
-    if (o.k > o.drives) return o.drives + "枚でも通さない";
+    if (o.k > o.drives) return "超貫通";
     return (o.leg ? "前" : "") + o.k + "枚貫通" + (o.leg && !short && 2 * o.k <= o.drives ? "（通常" + 2 * o.k + "枚）" : "");
   }
 
@@ -435,7 +435,7 @@ h1{flex:1;margin:0;font-size:15px;font-weight:700;white-space:nowrap}
     if (q.minus) { m.appendChild(el("small", "相手の効果")); m.appendChild(el("b", "−" + q.minus)); m.appendChild(el("span", "パワー")); }
     var ask = $("ask"); ask.textContent = "";
     ask.appendChild(el("em", sp(goalText(q))));
-    ask.appendChild(el("span", q.drives === 0 || q.k > q.drives ? "ためのガード値は？" : "にするガード値は？"));
+    ask.appendChild(el("span", q.drives === 0 ? "ためのガード値は？" : "にするガード値は？"));
     $("rule").textContent = sp("最小値で回答・同値はヒット・" + (q.drives === 0 ? "トリガー +" + TRIG : q.leg ? "前トリガー +" + q.trig + "／通常 +" + TRIG : "トリガー +" + q.trig + (q.plus ? "（効果+5000込み）" : "")));
     $("guard").className = "guard";
     $("result").hidden = true;
